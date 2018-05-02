@@ -1,0 +1,96 @@
+---
+title: "Artificial Intelligence"
+author: "Imran Ali"
+date: "March 17, 2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(dplyr)
+library(kableExtra)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Course Outline
+Artificial Intelligence: Introduction, AI Paradigms and Hypothesis, Intelligent
+Agents. Difference between Cybernetic Intelligence and Artificial Intelligence,
+Objectives and Scope of Weak AI and Strong AI, Problem-solving: Solving
+Problems by Searching, Informed Search and Exploration, Constraint
+Satisfaction Problems, Adversarial Search. Knowledge and reasoning:
+Logical Agents, First-Order Logic, Inference in First-Order Logic, Knowledge
+Representation. Planning and Acting in the Real World. Uncertain knowledge
+and reasoning: Uncertainty, Probabilistic Reasoning, Probabilistic Reasoning
+over Time, Making Simple Decisions, Making Complex Decisions. Learning:
+Learning from Observations, Knowledge in Learning; Learning Methods,
+Reinforcement Learning. Communicating, perceiving, and acting:
+Communication, Probabilistic Language Processing, Perception and
+Robotics. Introduction to LISP/PROLOG and Expert Systems (ES) and
+Applications; Artificial General Intelligence, Issues in Safe AI, Introduction to
+Cognitive and Conscious Systems.
+
+## Reference Materials:
+1. Artificial Intelligence: Structures and Strategies for Complex Problem
+Solving: International Edition by George F. Luger, 6 th edition: Pearson
+Education, 2008.
+2. Artificial Intelligence: A Modern Approach, by Stuart Jonathan Russell,
+Peter Norvig, John F. Canny, 3 nd Edition, Prentice Hall.
+3. Prolog Programming for Artificial Intelligence, Ivan Bratko, 3 rd Edition,
+Addison Wesley, 2001.
+
+## List of Definitions:
+1. "The exciting new effort to make computers think (machines with minds), in the full and literal sense." (Haugeland, 1985)
+2. "[The automation of] activities that we associate with human thinking, activities such as decision-making, problem solving, learning . . ." (Bellman, 1978) 
+3. "The art of creating machines that perform functions that require intelligence
+when performed by people." (Kurzweil,1990)
+4. "The study of how to make computers do things at which, at the moment, people are better." (Rich and Knight, 1991)
+5. "The study of mental faculties through the use of computational models."(Chamiak and McDermott, 1985)
+6. "The study of the computations that make it possible to perceive, reason, and act."(Winston, 1992)
+7. "Computational Intelligence is the study of the design of intelligent agents." (Poole et al., 1998)
+8. "A1 . . .is concerned with intelligent behavior in artifacts." (Nilsson, 1998)
+
+```{r, echo=FALSE}
+col1 <- c("Systems that think like humans", "Definitions 1 and 2", "Systems that act like humans", "Definitions 3 and 4")
+col2 <- c("Systems that think rationally", "Definitions 5 and 6", "Systems that act rationally", "Definition 7 and 8")
+txttable <- data.frame(col1, col2)
+x = kable(txttable, "html") %>% 
+                   kable_styling(bootstrap_options = c("striped")) %>%
+                   column_spec(1, border_right = T) %>%
+                   row_spec(1, bold=T) %>% row_spec(3, bold = T)
+gsub("<thead>.*</thead>", "", x)
+```
+
+Definitions of Artificial Intelligence(A.I) vary along two main dimensions:
+
+1. Thought process and reasoning
+2. behavior 
+
+Historically all four approaches to A.I have been followed.
+
+## Acting humanly: The Turing Approach
+
+Alan Turing suggested a test based on **indistinguishability from human beings**. The computer passes
+the test if a human iterrogator, after posing some written questions, cannot tell whether the
+written responses come from a person or not. (for movie lovers [The Imitation Game](http://www.imdb.com/title/tt2084970/))
+
+To pass the test the computer would need following capabilities:
+
+- Natural Language Processing (NLP): to successfully communicate in English.
+- Knowledge representation: to store what it knows or hears.
+- Automated reasoning: to answer questions using stored information and draw new conclusion
+- machine learning: to adapt new circumstances and to detect and extrapolate new patterns.
+
+```{r, echo=FALSE, out.width="200px"}
+knitr::include_graphics("Alan_Turing.jpg")
+```
+
+### Total Turing Test
+Total Turing test allows the interrogator to pass physical objects to test perceptual abilities. To pass the total turing test the computer will need:
+
+- computer vision: to perceive objects, and 
+- robotics to manipulate objects and move about.
+
+## Thinking humanly: The cognitive modeling approach
+To say that a given program thinks like human, we must have some way of determining **how humans think**. There are two ways to do this, through introspection, and through psychological experiments. 

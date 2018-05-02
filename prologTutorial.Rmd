@@ -1,0 +1,29 @@
+---
+title: "Prolog Tutorial"
+author: "Imran Ali"
+date: "March 29, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Installation of SWI-Prolog
+
+This link will take you to the download page for stable version of [SWI-Prolog](http://www.swi-prolog.org/download/stable).
+
+Following contents have been taken from the [online tutorial](http://lpn.swi-prolog.org/lpnpage.php?pageid=online) by **Patrick Blackburn, Johan Bos, Kristina Striegnitz**.
+
+
+# Facts, Rules and Queries
+
+There are 3 basic constructs in Prolog: 
+
+1. Facts
+2. Rules
+3. Queries
+
+* A collection of _Rules_ and _Facts_ is called a _knowledge base_ (or a database) and Prolog programming is all about writing knowledge bases.
+
+* We use prolog programs by posing _queries_ (by asking questions about the information stored) 

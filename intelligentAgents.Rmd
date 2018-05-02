@@ -1,0 +1,37 @@
+---
+title: "Intelligent Agents"
+author: "Imran Ali"
+date: "April 4, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## What is Intelligent Agent?
+
+An **autonomous entity** which observes through **sensors** and acts upon an environment using **actuators** and directs its activity towards achieving goals. A reflex machine such as a thermostat, is considered an example of an intelligent agent.
+
+![Simple reflex agent](figures/IntelligentAgent-SimpleReflex.png)
+
+More example of intelligent agents: 
+
+1. Trading agents in finance: The agent can sense(by checking fluctuations in rates or reading news) stock market, prize bonds or commoditiy market, and make buying or selling decisions.
+
+2. Daignostic agent in medicine: observes the patient through various measurements e.g. blood pressure, heart rate, body temperature, and communicates the diagnosis to the doctor.
+
+3. Crawling Agent: Retrieve the web pages from the world wide web, stores and sort the pages. When the user presents a query the agent returns the list of relevant pages.
+
+The agent continously takes decisions in a cycle, called **perception action cycle**.
+
+## Some Related Terminology 
+
+1. **Fully vs Partially observable:** An evnvironment is fully observable if what the agent can sense in any point in time is completely sufficient to make an optimal decision. In other words if the agent can use its sensor to observer the entire state of the environment. On the other hand if the sensors can observe a fraction of the state, the environment is partially observable.
+Agents that deal with paritally observable environment need to acquire internal memory to understand what the state of the environment is.
+
+2. **Deterministic vs Stochastic:** Deterministic Environment is the one where the actions of the agent uniquely determine the outcome. For example in chess moving a piece is deterministic, since moving the same piece results in always the same outcome. Games with dice are stochastic, the outcome of throughing a dice is not predictable, since their is certain amount of randomness involved.
+
+3. **Discrete vs Continuous:** The environment with finitely many action choices and finitely many things to sense, e.g. a chessboard. In continuous environments the space of possible actions, or things to be sensed may be infinite. e.g. throughing darts.
+
+4. **Benign vs adversarial:** Benign environment has no objective of its own that would go against what you are trying to accomplish, e.g. weather is benign. In contrast with  adversarial environment where the opponent is trying to defeat the competitor.
