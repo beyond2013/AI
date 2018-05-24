@@ -128,7 +128,7 @@ $(document).ready(function () {
 
 <div id="installation-of-swi-prolog" class="section level1">
 <h1>Installation of SWI-Prolog</h1>
-<p>This link will take you to the download page for stable version of <a href="http://www.swi-prolog.org/download/stable">SWI-Prolog</a>.</p>
+<p>This link will take you to the download page for stable version of <a href="http://www.swi-prolog.org/download/stable">SWI-Prolog</a>. Choose appropriate version of prolog (for most computers running Windows 10 (64-bit) click <a href="http://www.swi-prolog.org/download/stable/bin/swipl-w64-764.exe">SWI-Prolog 7.6.4 for Microsoft Windows (64 bit)</a>)</p>
 <p>Following contents have been taken from the <a href="http://lpn.swi-prolog.org/lpnpage.php?pageid=online">online tutorial</a> by <strong>Patrick Blackburn, Johan Bos, Kristina Striegnitz</strong>.</p>
 </div>
 <div id="facts-rules-and-queries" class="section level1">
@@ -140,9 +140,58 @@ $(document).ready(function () {
 <li>Queries</li>
 </ol>
 <ul>
-<li><p>A collection of <em>Rules</em> and <em>Facts</em> is called a <em>knowledge base</em> (or a database) and Prolog programming is all about writing knowledge bases.</p></li>
-<li><p>We use prolog programs by posing <em>queries</em> (by asking questions about the information stored)</p></li>
+<li>A collection of <strong>Rules</strong> and <strong>Facts</strong> is called a <strong>knowledge base</strong> (or a database) and Prolog programming is all about writing knowledge bases.</li>
 </ul>
+<div id="some-simple-examples" class="section level2">
+<h2>Some simple examples</h2>
+<div id="knowledge-basekb-1" class="section level3">
+<h3>Knowledge Base(KB) 1</h3>
+<pre><code>student(arif).
+student(umair).
+student(naqeeb).
+likesTroubleshooting(arif).
+likesCars(naqeeb).
+likesAI(umair).
+</code></pre>
+<ul>
+<li>Note that the <strong>names</strong> <em>arif, umair, naqeeb</em> and <strong>properties</strong> <em>student, likesTroubleshooting</em> have their first letter in lower case</li>
+<li>We use prolog programs by posing <em>queries</em> (by asking questions about the information stored)</li>
+</ul>
+</div>
+<div id="queries-for-kb1" class="section level3">
+<h3>Queries for KB1</h3>
+<pre><code>?- student(arif).
+?- student(naqeeb).
+?- student(ali).
+?- likesCars(naqeeb).
+?- likesAI(naqeeb).</code></pre>
+</div>
+<div id="knowledge-base-2" class="section level3">
+<h3>Knowledge Base 2</h3>
+<pre><code>happy(naqeeb).
+happy(danish) :- makesProfit(naqeeb).
+sellCars(naqeeb).
+makesProfit(naqeeb) :- sellCars(naqeeb).</code></pre>
+<ul>
+<li>Knowledge base contains 2 facts and 2 rules.</li>
+<li>happy(naqeeb). and sellCars(naqeeb). are facts.</li>
+<li>the other two clauses are rules.</li>
+<li>2nd clause of Knowledge base 2 can be read as “danish is happy if naqeeb makes profit”.</li>
+</ul>
+</div>
+<div id="queries-for-kb2" class="section level3">
+<h3>Queries for KB2</h3>
+<pre><code>?- happy(naqeeb).
+?- sellCars(naqeeb).
+?- sellCars(danish).
+?- makesProfit(danish).
+?- makesProfit(naqeeb).
+?- happy(danish).</code></pre>
+<ul>
+<li>Note that the fact “happy(danish).” is not explicitly mentioned in KB2, rather prolog infer this fact from knowledge base.</li>
+</ul>
+</div>
+</div>
 </div>
 
 

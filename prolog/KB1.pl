@@ -1,5 +1,6 @@
-woman(mia).
-woman(jody).
-woman(yolanda).
-playsAirGuitar(jody).
-party.
+student(arif).
+student(umair).
+student(naqeeb).
+likesTroubleshooting(arif).
+likesCars(naqeeb).
+likesAI(umair).

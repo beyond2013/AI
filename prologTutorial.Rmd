@@ -11,7 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Installation of SWI-Prolog
 
-This link will take you to the download page for stable version of [SWI-Prolog](http://www.swi-prolog.org/download/stable).
+This link will take you to the download page for stable version of [SWI-Prolog](http://www.swi-prolog.org/download/stable). Choose appropriate version
+of prolog (for most computers running Windows 10 (64-bit) click [SWI-Prolog 7.6.4 for Microsoft Windows (64 bit)](http://www.swi-prolog.org/download/stable/bin/swipl-w64-764.exe))
 
 Following contents have been taken from the [online tutorial](http://lpn.swi-prolog.org/lpnpage.php?pageid=online) by **Patrick Blackburn, Johan Bos, Kristina Striegnitz**.
 
@@ -24,6 +25,57 @@ There are 3 basic constructs in Prolog:
 2. Rules
 3. Queries
 
-* A collection of _Rules_ and _Facts_ is called a _knowledge base_ (or a database) and Prolog programming is all about writing knowledge bases.
+* A collection of **Rules** and **Facts** is called a **knowledge base** (or a database) and Prolog programming is all about writing knowledge bases.
 
+## Some simple examples  
+### Knowledge Base(KB) 1
+
+```
+student(arif).
+student(umair).
+student(naqeeb).
+likesTroubleshooting(arif).
+likesCars(naqeeb).
+likesAI(umair).
+
+```
+* Note that the **names** _arif, umair, naqeeb_ and **properties** _student, likesTroubleshooting_ have their first letter in lower case
 * We use prolog programs by posing _queries_ (by asking questions about the information stored) 
+
+### Queries for KB1
+
+``` 
+?- student(arif).
+?- student(naqeeb).
+?- student(ali).
+?- likesCars(naqeeb).
+?- likesAI(naqeeb).
+```
+
+### Knowledge Base 2
+
+```
+happy(naqeeb).
+happy(danish) :- makesProfit(naqeeb).
+sellCars(naqeeb).
+makesProfit(naqeeb) :- sellCars(naqeeb).
+```
+
+* Knowledge base contains 2 facts and 2 rules.
+* happy(naqeeb). and sellCars(naqeeb). are facts.
+* the other two clauses are rules.
+* 2nd clause of Knowledge base 2 can be read as "danish is happy if naqeeb makes profit".
+
+### Queries for KB2
+
+```
+?- happy(naqeeb).
+?- sellCars(naqeeb).
+?- sellCars(danish).
+?- makesProfit(danish).
+?- makesProfit(naqeeb).
+?- happy(danish).
+```
+
+* Note that the fact "happy(danish)."  is not explicitly mentioned in KB2, rather prolog
+infer this fact from knowledge base.
