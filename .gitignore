@@ -1,0 +1,6 @@
+.Rhistory
+*.odt
+*.ods
+videos/*
+AI/*
+books/*

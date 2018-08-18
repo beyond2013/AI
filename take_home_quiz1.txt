@@ -1,0 +1,19 @@
+
+This take home quiz is intended to complement and complete knowledge of prolog syntax and terminology. Students can use contents of chapter 1 and chapter 2 to answer following questions. Visit 'Learn Prolog Now!' (http://lpn.swi-prolog.org) online.
+You can explain your answers using Knowledge Bases KB1.pl(https://github.com/beyond2013/ArtificialIntelligence/blob/master/prolog/KB1.pl),  KB2.pl(https://github.com/beyond2013/ArtificialIntelligence/blob/master/prolog/KB2.pl) demonstrated in class. 
+
+How to launch swi-prolog on command line?
+What is the extension of a prolog Knowledge Base?
+How to load a knowledge base in prolog?
+How to exit a prolog session?
+How to get help on a topic from within prolog?
+What is an atom?
+What is a term?
+What is functor?
+What are complex terms?
+What is predicate?
+What is arity of predicate?
+What is unification?
+
+Note: Complete this quiz by writing your anwers in a plain text file with .txt extension. Create a github account, create a repository, upload your text file in the repository, and send me the link to your github repository @ Imranali@um.uob.edu.pk.
+This Quiz is graded and is of 10 points, last date of submission is 6th September, 2018. Submission after deadline will not be graded.
