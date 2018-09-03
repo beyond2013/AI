@@ -5,7 +5,7 @@ if one or more rules in its definition refers to itself.
 */
 
 descend(X,Y) :- child(X, Y).
-descend(X,Y) :- child(X, Z),  child(Z,Y).
+descend(X,Y) :- child(X, Z), descend(Z,Y).
 child(ibrahim, ismail).
 child(ibrahim, ishaq).
 child(ishaq, yaqub).
