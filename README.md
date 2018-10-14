@@ -24,4 +24,5 @@ Assignment: 15 marks
 ## Online Resources:  
 
 1.  https://www.udacity.com/course/intro-to-artificial-intelligence--cs271
-2.  https://www.edx.org/course/artificial-intelligence-ai-columbiax-csmm-101x-4
+2.  https://www.edx.org/course/artificial-intelligence-ai-columbiax-csmm-101x-4  
+3. http://www.swi-prolog.org/
