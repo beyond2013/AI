@@ -10,62 +10,108 @@ As aspiring computer science professionals, you must understand the following gu
 2. **Verify and Validate:** AI models can sometimes generate logically incorrect or inefficient code blocks (hallucinations). It is your responsibility as an engineer to test, benchmark, and mathematically verify your algorithm's behavior.
 3. **The "Why" Matters Most:** Writing code that works is only 20% of the job. In this course, you will be graded heavily on your ability to explain *why* an algorithm was chosen, its time/space complexity ($O(n)$ metrics), and how it behaves when the environment scales. 
 
-*“The goal of Artificial Intelligence is to build systems that think. The goal of this course is to teach YOU how to think algorithmically.”*
-
-# Week 1: Introduction to AI & Knowledge-Based Systems
-
-## 1. Lecture Content & Core Concepts
-
-### A. Defining Artificial Intelligence
-*   **What is AI?** The study of systems that receive percepts from the environment and perform actions. AI can be categorized along two dimensions:
-    1.  **Thinking vs. Acting:** Focus on internal thought processes/reasoning vs. external observable behavior.
-    2.  **Humanly vs. Rationally:** Measuring success against human performance vs. an ideal concept of correctness (rationality).
-*   **The Turing Test:** Proposed by Alan Turing (1950), it defines operational intelligence as the ability to achieve human-level performance in all cognitive tasks sufficient to fool an interrogator.
-*   **Rationality:** A system is rational if it does the "right thing" given what it knows. In AI, we lean heavily toward building **Rational Agents** because it is mathematically well-defined and more general than mimicking human behavior.
-
-### B. Intelligent Agents and Environments
-*   **Agent Architecture:** An agent is anything that can be viewed as perceiving its environment through **sensors** and acting upon that environment through **actuators** ($\text{Agent} = \text{Architecture} + \text{Program}$).
-*   **PEAS Framework:** To design an intelligent agent, we must fully specify its task environment using PEAS:
-    *   **P**erformance Measure: The criteria that determine how successful an agent is.
-    *   **E**nvironment: The external setting or context in which the agent operates.
-    *   **A**ctuators: The tools or mechanisms the agent uses to assert actions.
-    *   **S**ensors: The devices the agent uses to receive input or percepts.
-*   **Environment Properties:** Environments dictate the complexity of the AI algorithm. They can be:
-    *   *Fully Observable vs. Partially Observable*
-    *   *Deterministic vs. Stochastic*
-    *   *Episodic vs. Sequential*
-    *   *Static vs. Dynamic*
-    *   *Discrete vs. Continuous*
-
-### C. Knowledge-Based Systems (KBS)
-*   **The Paradigm Shift:** Traditional procedural code relies strictly on hardcoded `if-else` execution paths. Knowledge-Based Systems separate the software execution into two distinct layers:
-    1.  **Knowledge Base (KB):** A centralized repository of domain-specific facts, rules, and relationships.
-    2.  **Inference Engine:** The generic, domain-independent control mechanism that applies logical rules to the KB to deduce new information or make decisions.
-*   **Simple Reflex Agents:** The simplest agent type. It maps current percepts directly to actions using hardcoded condition-action rules (e.g., *if car-in-front-is-braking then initiate-braking*).
+## Lecture 1: Introduction to Artificial Intelligence
 
 ---
 
-## 2. Classroom Discussion / Concept Check
-1.  **The Self-Driving Car PEAS:** Ask students to identify the PEAS profile for a self-driving car. 
-    *   *Expected Answers:* **P:** Safety, time, comfort, legality; **E:** Roads, pedestrians, weather; **A:** Steering, accelerator, brakes; **S:** Cameras, LiDAR, speedometer.
-2.  **Reflex vs. Intelligence:** Is a home thermostat truly "intelligent"? It uses a simple condition-action rule (*if temp < baseline, turn on heater*). Introduce the idea that while it fits the definition of a simple reflex agent, AI scales this up to handle complex, partially observable state spaces.
+### Lecture Objectives
+
+By the end of this lecture, you will be able to:
+
+* Define Artificial Intelligence (AI) across four major historical perspectives.
+* Explain the concept of an **Intelligent Agent** and **Rationality**.
+* Identify the key foundational disciplines that contributed to AI.
+* Understand the core components required to pass the Turing Test.
 
 ---
 
-## 3. Practical Lab Manual: Building a Knowledge-Based Expert System
+### 1. What is Artificial Intelligence?
 
-### Lab Objective
-Students will set up their Python environment (Google Colab or local VS Code) and implement a simple, rule-based Expert System using an object-oriented approach. This system will simulate a technical support or medical diagnostic agent, demonstrating how a separate "Knowledge Base" can drive decisions.
+Artificial Intelligence is a universal field concerned with computational models of thought, reasoning, and behavior. Historically, definitions of AI are organized across two dimensions: **Human Performance vs. Rationality** and **Thought Processes vs. Behavior**.
 
-### Prerequisites
-*   Basic understanding of Python classes, dictionaries, and loops.
-*   No external libraries are required for this lab (pure Python).
+```
+                 HUMAN-CENTERED                      RATIONALITY-CENTERED
+         +----------------------------------+----------------------------------+
+THINKING | Thinking Humanly                 | Thinking Rationally              |
+         | Cognitive models of human        | "Laws of thought" approach;      |
+         | mental processes.                | formal logic and inference.      |
+         +----------------------------------+----------------------------------+
+ ACTING  | Acting Humanly                   | Acting Rationally                |
+         | Passing the Turing Test;         | Rational Agent approach;         |
+         | mimicking human capabilities.    | doing the "right thing."         |
+         +----------------------------------+----------------------------------+
 
-### Lab Tasks
+```
 
-#### Task 1: Environment Verification
-Open a new Google Colab notebook or a local Python file and run the following script to verify your environment setup:
-```python
-import sys
-print(f"Python Version: {sys.version}")
-print("Environment successfully configured for BSCS AI Lab!")
+---
+
+### 2. Four Views of AI
+
+#### A. Thinking Humanly (The Cognitive Approach)
+
+* **Goal**: Model human mental faculties through computational models.
+* Requires empirical observation and hypotheses about actual human thought processes.
+
+#### B. Thinking Rationally (The "Laws of Thought" Approach)
+
+* **Goal**: Focus on correct inferences using mathematical logic.
+* Derives new conclusions from formal statements.
+
+#### C. Acting Humanly (The Turing Test Approach)
+
+* **Goal**: Build machines that perform functions requiring human-level intelligence.
+* **Capabilities required for an agent to pass the Turing Test:**
+* **Natural Language Processing:** To communicate successfully.
+* **Knowledge Representation:** To store knowledge and information.
+* **Automated Reasoning:** To answer questions and draw conclusions.
+* **Machine Learning:** To adapt to new circumstances and detect patterns.
+
+
+
+#### D. Acting Rationally (The Rational Agent Approach)
+
+* **Goal**: Build agents that act so as to achieve the best outcome (or best expected outcome under uncertainty).
+* **Advantage:** More general than purely logical inference, as correct inference is only one mechanism for achieving rational behavior.
+
+---
+
+### 3. Key Concepts: Agents and Rationality
+
+#### What is an Agent?
+
+> An **Agent** is anything that perceives its environment through sensors and acts upon that environment via actuators. An agent function maps percept sequences to actions.
+
+#### Rationality
+
+* **Definition:** A system is **rational** if it does the "right thing" given what it knows.
+* **Four Factors Defining Rationality:**
+1. The **performance measure** evaluating success.
+2. The agent's **prior knowledge** of its environment.
+3. The **actions** the agent can perform.
+4. The **percept sequence** received by the agent to date.
+
+
+* **Autonomy:** An agent lacks autonomy if it relies heavily on prior designer knowledge rather than learning from its own experience. A rational agent should be autonomous, learning over time to compensate for incomplete or incorrect prior knowledge.
+
+---
+
+### 4. Foundations of AI
+
+Artificial Intelligence draws upon a rich history of ideas and tools across multiple disciplines:
+
+| Discipline | Key Contribution / Question |
+| --- | --- |
+| **Philosophy** | Posed ideas that the mind is machine-like, operates on knowledge in internal language, and uses thought to guide action. |
+| **Mathematics** | Provided tools for logical certainty, probabilistic reasoning, computation, and algorithm analysis. |
+| **Economics** | Formalized decision-making to maximize expected utility outcomes. |
+| **Neuroscience** | Explored how brains process information through connected network structures. |
+| **Psychology / Linguistics** | Established views of humans as information-processing systems and modeled language structure. |
+| **Control Theory** | Developed methods for designing systems that act optimally using environmental feedback. |
+
+---
+
+### 5. Summary & Key Takeaways
+
+* AI can be defined by focusing on **thinking vs. acting** and **human fidelity vs. ideal rationality**.
+* The central unifying perspective adopted in modern AI is the **Rational Agent** framework—designing systems that take the best possible actions to achieve goals.
+* Intelligent agents combine perception, reasoning, knowledge representation, and learning to operate autonomously in complex task environments.
