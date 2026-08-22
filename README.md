@@ -1,9 +1,9 @@
 ## BSCS 4th Semester: 10-Week Artificial Intelligence Course Breakup
 
 ### [Week 1: Introduction to AI & Knowledge-Based Systems](./markdown/Week1.md)
-*   **Content:** An Introduction to Artificial Intelligence and its applications towards Knowledge Based Systems.
+*   **Content:** An Introduction to Artificial Intelligence and its applications towards [Knowledge Based Systems](./markdown/week2.md).
 *   **Core Concepts:** Definition of AI, the Turing Test, and rational agents. Overview of Knowledge-Based Systems and the transition from rule-based architectures to modern AI pipelines.
-*   **Practical Lab:** Setting up the Python environment (Google Colab/VS Code). Build a rule-based expert system (e.g., an automated medical symptom classifier or a tech-support diagnostic tree) using conditional logic structures.
+*   [**Practical Lab:**](./markdown/Lab1.md) Setting up the Python environment (Google Colab/VS Code). Build a rule-based expert system (e.g., an automated medical symptom classifier or a tech-support diagnostic tree) using conditional logic structures.
 
 ### Week 2: Uninformed Search Strategies
 *   **Content:** Problem Solving by Searching (Uninformed searching).
