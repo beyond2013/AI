@@ -23,6 +23,7 @@ Early AI research recognized that general problem solvers were insufficient for 
 
 A standard Knowledge-Based System consists of two primary operational components separated from the user interface:
 
+```
 +-------------------------------------------------------------+
 |                      USER / ENVIRONMENT                     |
 +-------------------------------------------------------------+
@@ -39,6 +40,7 @@ v
 |                        KNOWLEDGE BASE                       |
 |       (Domain Facts, Axioms, Condition-Action Rules)        |
 +-------------------------------------------------------------+
+```
 
 ### Components Breakdown
 
@@ -54,11 +56,13 @@ v
 
 To succeed in the HEC Competency Test, students must understand how AI paradigms evolved across three major eras:
 
+```
 +---------------------+     +--------------------------+     +------------------------+
 |   1. Rule-Based     |     |   2. Statistical & ML    |     |   3. Modern AI / MLOps |
 |   (1970s - 1980s)   | --> |     (1990s - 2010s)      | --> |     (2020s - Present)  |
 | Expert Systems / KB |     | Feature Extraction / ML  |     | Deep Learning / LLMs   |
 +---------------------+     +--------------------------+     +------------------------+
+```
 
 1. Rule-Based Era (1970s–1980s):  
 - Relied on human experts manually writing conditional rules (IF symptom THEN diagnosis).
