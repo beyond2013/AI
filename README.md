@@ -5,10 +5,10 @@
 *   **Core Concepts:** Definition of AI, the Turing Test, and rational agents. Overview of Knowledge-Based Systems and the transition from rule-based architectures to modern AI pipelines.
 *   [**Practical Lab:**](./markdown/Lab1.md) Setting up the Python environment (Google Colab/VS Code). Build a rule-based expert system (e.g., an automated medical symptom classifier or a tech-support diagnostic tree) using conditional logic structures.
 
-### Week 2: Uninformed Search Strategies
+### [Week 2: Uninformed Search Strategies](./markdown/Week3.md)
 *   **Content:** Problem Solving by Searching (Uninformed searching).
 *   **Core Concepts:** Translating real-world problems into formal state-space graphs. Mechanism, frontier management, and complexities of Breadth-First Search (BFS) and Depth-First Search (DFS).
-*   **Practical Lab:** Implement BFS and DFS from scratch in Python to navigate an agent through a 2D matrix maze. Print out and compare the size of the search frontier and the path length for both algorithms.
+*   [**Practical Lab:**](./markdown/Lab2.md) Implement BFS and DFS from scratch in Python to navigate an agent through a 2D matrix maze. Print out and compare the size of the search frontier and the path length for both algorithms.
 
 ### Week 3: Informed Search & Heuristics
 *   **Content:** Problem Solving by Searching (Informed searching, Heuristics).
