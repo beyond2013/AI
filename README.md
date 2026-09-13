@@ -10,10 +10,10 @@
 *   **Core Concepts:** Translating real-world problems into formal state-space graphs. Mechanism, frontier management, and complexities of Breadth-First Search (BFS) and Depth-First Search (DFS).
 *   [**Practical Lab:**](./markdown/Lab2.md) Implement BFS and DFS from scratch in Python to navigate an agent through a 2D matrix maze. Print out and compare the size of the search frontier and the path length for both algorithms.
 
-### Week 3: Informed Search & Heuristics
+### [Week 3: Informed Search & Heuristics](./markdown/Week4.md)
 *   **Content:** Problem Solving by Searching (Informed searching, Heuristics).
 *   **Core Concepts:** The role of domain knowledge in reducing search spaces. Greedy Best-First Search and the $A^*$ Search algorithm. Developing mathematically admissible and consistent heuristics.
-*   **Practical Lab:** Write an $A^*$ solver in Python for the classic 8-Puzzle game. Test the algorithm using different heuristics (e.g., Manhattan distance vs. Misplaced tiles) to measure node exploration efficiency.
+*   [**Practical Lab:**](./markdown/Lab3.md) Write an $A^*$ solver in Python for the classic 8-Puzzle game. Test the algorithm using different heuristics (e.g., Manhattan distance vs. Misplaced tiles) to measure node exploration efficiency.
 
 ### Week 4: Local Search Optimization
 *   **Content:** Problem Solving by Searching (Local searching).
