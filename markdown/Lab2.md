@@ -1,17 +1,25 @@
-# Practical Lab: Uninformed Search
+# Lab: Uninformed Search — BFS and DFS on a 2D Maze
 
-## Problem Statement
+**Goal of this lab:** implement BFS and DFS, run them on the same maze, and compare the paths and frontier sizes they produce.
 
-An intelligent agent must navigate through a 2D maze from a start cell to a goal cell.
+Run each code cell in order — later cells depend on earlier ones.
 
-The maze will be represented using:
+---
+
+### 📝 Markdown Cell
+
+## 1. The Maze
+
+We represent the maze as a grid of `0`s and `1`s:
 
 ```text
 0 = Open cell
 1 = Wall
 ```
 
-Example:
+The agent starts at `start` and must reach `goal`.
+
+### 💻 Code Cell
 
 ```python
 maze = [
@@ -24,22 +32,27 @@ maze = [
 
 start = (0, 0)
 goal = (4, 4)
-```
 
-The agent can move:
-
-```text
-UP
-DOWN
-LEFT
-RIGHT
+for row in maze:
+    print(row)
 ```
 
 ---
 
-# Python Representation of Movements
+### 📝 Markdown Cell
 
-We represent movements using row and column changes.
+## 2. Movements
+
+The agent can move `UP`, `DOWN`, `LEFT`, `RIGHT`. We represent each as a `(row_change, col_change)` pair:
+
+```text
+(-1, 0) → up
+( 1, 0) → down
+( 0,-1) → left
+( 0, 1) → right
+```
+
+### 💻 Code Cell
 
 ```python
 directions = [
@@ -50,433 +63,201 @@ directions = [
 ]
 ```
 
-For example:
-
-```text
-(-1, 0) → Move one row upward
-(1, 0)  → Move one row downward
-(0, -1) → Move one column left
-(0, 1)  → Move one column right
-```
-
 ---
 
-# Checking Whether a Move Is Valid
+### 📝 Markdown Cell
 
-A move is valid if:
+## 3. Checking a Valid Move
 
-1. The new position is inside the maze.
-2. The new position is not a wall.
+A move is valid only if the new cell is **inside the maze** and **not a wall**.
+
+### 💻 Code Cell
 
 ```python
 def valid_move(maze, row, col):
-
     rows = len(maze)
     cols = len(maze[0])
-
     return (
         0 <= row < rows
         and 0 <= col < cols
         and maze[row][col] == 0
     )
+
+# Quick check
+print(valid_move(maze, 0, 0))   # True — open cell
+print(valid_move(maze, 1, 1))   # False — wall
+print(valid_move(maze, -1, 0))  # False — outside the maze
 ```
 
 ---
 
-# BFS Implementation
+### 📝 Markdown Cell
 
-Python's `deque` provides an efficient queue.
+## 4. Breadth-First Search (BFS)
+
+BFS uses a **Queue** (FIFO) — the oldest discovered state is expanded first. This is what makes BFS explore level by level and guarantees a shortest path when every move costs 1.
+
+The key line to notice is `frontier.popleft()`.
+
+### 💻 Code Cell
 
 ```python
 from collections import deque
 
-
 def bfs(maze, start, goal):
-
-    directions = [
-        (-1, 0),   # up
-        (1, 0),    # down
-        (0, -1),   # left
-        (0, 1)     # right
-    ]
-
     frontier = deque([(start, [start])])
     visited = {start}
-
     max_frontier = 1
 
     while frontier:
+        max_frontier = max(max_frontier, len(frontier))
 
-        max_frontier = max(
-            max_frontier,
-            len(frontier)
-        )
-
-        current, path = frontier.popleft()
+        current, path = frontier.popleft()   # FIFO: oldest first
 
         if current == goal:
             return path, max_frontier
 
         row, col = current
-
         for dr, dc in directions:
-
-            nr = row + dr
-            nc = col + dc
-
+            nr, nc = row + dr, col + dc
             neighbor = (nr, nc)
 
-            if (
-                valid_move(maze, nr, nc)
-                and neighbor not in visited
-            ):
-
+            if valid_move(maze, nr, nc) and neighbor not in visited:
                 visited.add(neighbor)
-
-                frontier.append(
-                    (neighbor, path + [neighbor])
-                )
+                frontier.append((neighbor, path + [neighbor]))
 
     return None, max_frontier
 ```
 
----
-
-# Understanding the BFS Implementation
-
-The critical line is:
+### 💻 Code Cell
 
 ```python
-current, path = frontier.popleft()
+bfs_path, bfs_frontier = bfs(maze, start, goal)
+
+print("BFS path:", bfs_path)
+print("BFS path length:", len(bfs_path) - 1)
+print("BFS maximum frontier:", bfs_frontier)
 ```
 
-`popleft()` removes the oldest item from the queue.
-
-Therefore:
-
-```text
-First inserted
-      ↓
-First removed
-```
-
-This implements FIFO behavior.
-
-That is the defining feature of BFS.
+**Why `len(path) - 1`?** A path of 4 states (`Start → A → B → Goal`) represents only 3 movements. Since every movement costs 1, `len(path) - 1` gives both the path length and the path cost.
 
 ---
 
-# DFS Implementation
+### 📝 Markdown Cell
 
-For DFS, we can use a Python list as a stack.
+## 5. Depth-First Search (DFS)
+
+DFS uses a **Stack** (LIFO) — the most recently discovered state is expanded first. This makes DFS commit to one branch and follow it as deep as possible before backtracking.
+
+The only real change from BFS is `frontier.pop()` instead of `frontier.popleft()`.
+
+### 💻 Code Cell
 
 ```python
 def dfs(maze, start, goal):
-
-    directions = [
-        (-1, 0),   # up
-        (1, 0),    # down
-        (0, -1),   # left
-        (0, 1)     # right
-    ]
-
-    frontier = [(start, [start])]
+    frontier = [(start, [start])]   # plain list used as a stack
     visited = {start}
-
     max_frontier = 1
 
     while frontier:
+        max_frontier = max(max_frontier, len(frontier))
 
-        max_frontier = max(
-            max_frontier,
-            len(frontier)
-        )
-
-        current, path = frontier.pop()
+        current, path = frontier.pop()   # LIFO: most recent first
 
         if current == goal:
             return path, max_frontier
 
         row, col = current
-
         for dr, dc in directions:
-
-            nr = row + dr
-            nc = col + dc
-
+            nr, nc = row + dr, col + dc
             neighbor = (nr, nc)
 
-            if (
-                valid_move(maze, nr, nc)
-                and neighbor not in visited
-            ):
-
+            if valid_move(maze, nr, nc) and neighbor not in visited:
                 visited.add(neighbor)
-
-                frontier.append(
-                    (neighbor, path + [neighbor])
-                )
+                frontier.append((neighbor, path + [neighbor]))
 
     return None, max_frontier
 ```
 
----
-
-# Understanding the DFS Implementation
-
-The critical line is:
+### 💻 Code Cell
 
 ```python
-current, path = frontier.pop()
-```
-
-`pop()` removes the last item from the list.
-
-Therefore:
-
-```text
-Last inserted
-      ↓
-First removed
-```
-
-This implements LIFO behavior.
-
-That is the defining feature of DFS.
-
----
-
-# The Key Implementation Difference
-
-Compare:
-
-```python
-# BFS
-frontier.popleft()
-```
-
-with:
-
-```python
-# DFS
-frontier.pop()
-```
-
-Everything else about the search problem can remain largely the same.
-
-The difference in frontier management causes the algorithms to explore the state space differently.
-
-```text
-             FRONTIER
-                 |
-        +--------+--------+
-        |                 |
-       BFS               DFS
-        |                 |
-      Queue              Stack
-        |                 |
-      FIFO               LIFO
-        |                 |
- Level-by-level       Deep-first
-```
-
----
-
-# Running Both Algorithms
-
-```python
-bfs_path, bfs_frontier = bfs(
-    maze,
-    start,
-    goal
-)
-
-dfs_path, dfs_frontier = dfs(
-    maze,
-    start,
-    goal
-)
-
-
-print("BFS path:", bfs_path)
-print(
-    "BFS path length:",
-    len(bfs_path) - 1
-)
-print(
-    "BFS maximum frontier:",
-    bfs_frontier
-)
-
-print()
+dfs_path, dfs_frontier = dfs(maze, start, goal)
 
 print("DFS path:", dfs_path)
-print(
-    "DFS path length:",
-    len(dfs_path) - 1
-)
-print(
-    "DFS maximum frontier:",
-    dfs_frontier
-)
+print("DFS path length:", len(dfs_path) - 1)
+print("DFS maximum frontier:", dfs_frontier)
 ```
 
 ---
 
-# Why Is the Path Length `len(path) - 1`?
+### 📝 Markdown Cell
 
-Suppose the path is:
+## 6. Visualizing the Paths
 
-```python
-path = [
-    (0, 0),
-    (0, 1),
-    (0, 2),
-    (1, 2)
-]
-```
+`*` marks the solution path, `#` marks walls, `.` marks open cells.
 
-There are four states:
-
-```text
-Start → A → B → Goal
-```
-
-But the agent made only three movements.
-
-Therefore:
-
-```text
-Number of states     = 4
-Number of movements  = 3
-```
-
-Hence:
-
-```python
-len(path) - 1
-```
-
-gives the number of movements.
-
-Since every movement has cost 1:
-
-```text
-Path length = Path cost
-```
-
-for this experiment.
-
----
-
-# Visualizing the Solution
-
-We can create a function that prints the maze and marks the solution path.
+### 💻 Code Cell
 
 ```python
 def print_maze(maze, path=None):
-
     path = set(path or [])
-
     for r in range(len(maze)):
-
         row = ""
-
         for c in range(len(maze[0])):
-
             if (r, c) in path:
                 row += "* "
-
             elif maze[r][c] == 1:
                 row += "# "
-
             else:
                 row += ". "
-
         print(row)
 ```
 
-The symbols mean:
-
-```text
-* = Solution path
-# = Wall
-. = Open cell
-```
-
----
-
-# Displaying the BFS Solution
+### 💻 Code Cell
 
 ```python
 print("BFS solution:")
 print_maze(maze, bfs_path)
-```
 
-A possible output is:
+print()
 
-```text
-* * * * .
-. # # # *
-. . . # *
-. # . . *
-. # # # *
-```
-
-The exact path depends on the maze and the ordering of neighboring cells.
-
----
-
-#  Displaying the DFS Solution
-
-```python
 print("DFS solution:")
 print_maze(maze, dfs_path)
 ```
 
-DFS may produce a different path from BFS.
-
-This demonstrates an important concept:
-
-> **The same problem can produce different solutions depending on the search strategy.**
+Notice whether the two paths are the same or different — that's the point of the next section.
 
 ---
 
-# Comparing BFS and DFS
+### 📝 Markdown Cell
 
-Fill in the blanks of the following table:
+## 7. Compare BFS and DFS
+
+Fill in this table from your output above:
 
 | Algorithm | Path Length | Maximum Frontier |
 |---|---:|---:|
 | BFS | ___ | ___ |
 | DFS | ___ | ___ |
 
-Answer the following questions:
+**Answer these:**
 
 1. Which algorithm found the shorter path?
-2. Which algorithm had the larger frontier?
-3. Why did the algorithms produce different paths?
-4. Does DFS always produce the shortest path?
-5. Does BFS always produce the shortest path when every movement costs 1?
-6. What happens when the maze becomes larger?
-7. What happens if the order of directions is changed?
+2. Which algorithm had the larger maximum frontier?
+3. Why did the two algorithms produce different paths on the same maze?
+4. Does DFS always produce the shortest path? Why or why not?
+5. Does BFS always produce the shortest path when every movement costs 1? Why?
 
 ---
 
-# Experiment: Change Neighbor Ordering
+### 📝 Markdown Cell
 
-Initially, use:
+## 8. Experiment 1 — Change the Neighbor Order
 
-```python
-directions = [
-    (-1, 0),   # up
-    (1, 0),    # down
-    (0, -1),   # left
-    (0, 1)     # right
-]
-```
+DFS's exact path depends on the order in which neighbors are tried. Change `directions` and re-run DFS:
 
-Now change it to:
+### 💻 Code Cell
 
 ```python
 directions = [
@@ -485,227 +266,103 @@ directions = [
     (0, -1),   # left
     (-1, 0)    # up
 ]
+
+dfs_path2, dfs_frontier2 = dfs(maze, start, goal)
+
+print("DFS path (new order):", dfs_path2)
+print("DFS path length:", len(dfs_path2) - 1)
+print("DFS maximum frontier:", dfs_frontier2)
+
+print()
+print_maze(maze, dfs_path2)
 ```
 
-Run DFS again.
+**Question:** Did the DFS path change? Did BFS's path (Section 4) depend on this ordering the same way? Why or why not?
 
-Answer the question: Did the DFS path change?
+*(Reset `directions` back to the original `up, down, left, right` order before continuing, so Experiment 2 starts from the same baseline.)*
 
 ---
 
+### 📝 Markdown Cell
 
-# Real-World Applications of BFS
+## 9. Experiment 2 — Change `start` and `goal`
 
-BFS is useful when we need to explore a graph systematically by distance or number of steps.
+Now try different start and goal cells in the **same maze**, and re-run BFS and DFS. Pick cells that are open (`0`) in the maze grid from Section 1.
 
-Applications include:
+### 💻 Code Cell
 
-- Shortest path in unweighted graphs
-- Network exploration
-- Finding minimum number of connections
-- Social-network analysis
-- Web crawling
-- Puzzle solving
-- Robot navigation
+```python
+directions = [
+    (-1, 0),   # up
+    (1, 0),    # down
+    (0, -1),   # left
+    (0, 1)     # right
+]
 
-For example:
+# Try changing these to any open (0) cells in the maze
+start = (0, 0)
+goal = (2, 2)
 
-> Find the minimum number of links between two nodes in an unweighted network.
+bfs_path, bfs_frontier = bfs(maze, start, goal)
+dfs_path, dfs_frontier = dfs(maze, start, goal)
+
+print("BFS path:", bfs_path, "| length:", len(bfs_path) - 1, "| max frontier:", bfs_frontier)
+print("DFS path:", dfs_path, "| length:", len(dfs_path) - 1, "| max frontier:", dfs_frontier)
+
+print()
+print("BFS solution:")
+print_maze(maze, bfs_path)
+print()
+print("DFS solution:")
+print_maze(maze, dfs_path)
+```
+
+**Try at least 3 different `(start, goal)` pairs** and record your results:
+
+| Start | Goal | BFS Length | BFS Max Frontier | DFS Length | DFS Max Frontier |
+|---|---|---:|---:|---:|---:|
+| | | | | | |
+| | | | | | |
+| | | | | | |
+
+**Answer these:**
+
+6. Does BFS's path length ever change if you re-run it with the same `start`/`goal`? Does DFS's?
+7. As the distance between `start` and `goal` grows, what happens to the maximum frontier size for each algorithm?
+8. Can you find a `(start, goal)` pair where BFS and DFS return the **same** path? What does that tell you about the maze structure between those two points?
+9. What happens if `goal` is unreachable from `start` (e.g. sealed off by walls)? Try it — what do `bfs()` and `dfs()` return?
 
 ---
 
-# Real-World Applications of DFS
+### 📝 Markdown Cell
 
-DFS is useful when deep exploration or backtracking is appropriate.
+## 10. Where This Is Used
 
-Applications include:
+**BFS** — shortest paths in unweighted graphs, network exploration, social-network "degrees of separation," web crawling.
 
-- Maze exploration
-- Graph traversal
-- Cycle detection
-- Topological sorting
-- Backtracking
-- File-system traversal
-- Constraint problems
+**DFS** — maze/graph traversal, cycle detection, topological sorting, backtracking search, file-system traversal.
 
-For example:
-
-> Explore a possible route through a maze until a solution is found.
+Both are **uninformed** — they don't know which direction is "closer" to the goal. The next step beyond this lab is **informed search** (e.g. A\*), which uses a **heuristic** — an estimate of distance to the goal — to search more efficiently.
 
 ---
 
-# BFS and DFS in Artificial Intelligence
+### 📝 Markdown Cell
 
-Search is fundamental to AI because many intelligent tasks can be represented as:
+## 11. Key Takeaway
 
-```text
-Current State
-      |
-      v
-Possible Actions
-      |
-      v
-Future States
-      |
-      v
-Search
-      |
-      v
-Goal State
-```
-
-Examples include:
-
-- Maze solving
-- Robot navigation
-- Route planning
-- Game playing
-- Puzzle solving
-- Automated planning
-
-The search algorithm determines how the possibilities are explored.
-
----
-
-# From Uninformed Search to Informed Search
-
-Uninformed search does not know which state is more promising.
-
-For example:
-
-```text
-BFS:
-
-"I will explore states systematically."
-```
-
-An informed search algorithm can use additional knowledge.
-
-For example:
-
-```text
-A*:
-
-"I have an estimate of how far each state is from the goal."
-```
-
-This additional information is called a:
-
-> **Heuristic**
-
-This leads to later topics such as:
-
-- Greedy Best-First Search
-- A* Search
-- Heuristic functions
-
----
-
-#  Summary
-
-Problem solving by searching means:
-
-> **Exploring a state space to find a sequence of actions leading from an initial state to a goal state.**
-
-A formal search problem contains:
-
-```text
-Initial State
-Actions
-Transition Model
-Goal Test
-Path Cost
-```
-
-The problem can be represented as a graph:
-
-```text
-Nodes → States
-Edges → Actions / Transitions
-```
-
-The search algorithm maintains a **frontier** containing discovered but unexpanded states.
-
----
-
-# BFS Summary
-
-```text
-BFS
- |
- +-- Queue
- |
- +-- FIFO
- |
- +-- Level-by-level exploration
- |
- +-- Complete under standard assumptions
- |
- +-- Optimal for equal step costs
- |
- +-- Can require substantial memory
-```
-
----
-
-#  DFS Summary
-
-```text
-DFS
- |
- +-- Stack
- |
- +-- LIFO
- |
- +-- Deep exploration
- |
- +-- Not necessarily complete
- |
- +-- Not optimal
- |
- +-- Generally lower memory requirement
-```
-
----
-
-#  Most Important Takeaway
-
-The most important concept of this lecture is:
-
-> **BFS and DFS mainly differ in how they manage the frontier.**
-
-```text
-                    FRONTIER
-                        |
-             +----------+----------+
-             |                     |
-            BFS                   DFS
-             |                     |
-           Queue                 Stack
-             |                     |
-           FIFO                  LIFO
-             |                     |
-     Level-by-level           Deep-first
-             |                     |
-     Shortest path*           Not optimal
-             |                     |
-       More memory             Less memory
-```
-
-In Python:
+The entire behavioral difference between BFS and DFS comes down to one line:
 
 ```python
 # BFS
 frontier.popleft()
-```
 
-and:
-
-```python
 # DFS
 frontier.pop()
 ```
 
-A small change in frontier management produces a fundamentally different search strategy.
+FIFO vs. LIFO frontier management is what turns the same generic search algorithm into two strategies with different guarantees:
 
----
+| | BFS | DFS |
+|---|---|---|
+| Guaranteed shortest path (equal costs)? | Yes | No |
+| Typically uses less memory? | No | Yes |

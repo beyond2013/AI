@@ -1,414 +1,38 @@
 # Lecture: Problem Solving by Searching — Uninformed Search
 
-**Course:** Artificial Intelligence  
-**Topic:** Problem Solving by Searching (Uninformed Search)  
-**Duration:** 3 hours  
+**Course:** Artificial Intelligence
+**Topic:** Problem Solving by Searching (Uninformed Search)
+**Duration:** 3 hours
 **Practical Lab:** BFS and DFS in Python using a 2D matrix maze
 
 ---
 
-# 1. Learning Objectives
+## 1. Learning Objectives
 
 By the end of this lecture, students should be able to:
 
 1. Explain the idea of **problem solving as search**.
 2. Convert a real-world problem into a **formal state-space representation**.
-3. Identify:
-   - States
-   - Actions
-   - Transition models
-   - Goal tests
-   - Path costs
+3. Identify the five components of a search problem: state, actions, transition model, goal test, path cost.
 4. Represent a problem as a **state-space graph**.
-5. Explain the concept of the **search frontier**.
-6. Explain how BFS and DFS manage the frontier differently.
-7. Compare BFS and DFS in terms of:
-   - Completeness
-   - Optimality
-   - Time complexity
-   - Space complexity
-8. Implement BFS and DFS in Python.
-9. Use BFS and DFS to navigate an agent through a 2D matrix maze.
-10. Compare the **maximum frontier size** and **path length** produced by both algorithms.
+5. Explain the **search frontier** and how BFS/DFS manage it differently.
+6. Compare BFS and DFS on completeness, optimality, time complexity, and space complexity.
+7. Implement BFS and DFS in Python and run them on a 2D matrix maze.
+8. Compare the **maximum frontier size** and **path length** each algorithm produces.
 
 ---
 
-# 2. Introduction: Problem Solving as Search
+## 2. Problem Solving as Search
 
-Many artificial intelligence problems can be formulated as a **search problem**.
-
-Suppose an intelligent agent wants to travel from:
+Many AI problems — robot navigation, maze solving, route planning, game playing, puzzle solving — boil down to the same pattern:
 
 ```text
-Quetta → Karachi
+Initial State → Possible Actions → New States → ... → Goal State?
 ```
 
-The agent has to determine a sequence of actions that takes it from its current location to the destination.
+> **Key idea:** An AI agent solves a problem by searching through possible states until it finds one that satisfies the goal condition.
 
-The same basic idea applies to:
-
-- Robot navigation
-- Maze solving
-- Route planning
-- Game playing
-- Puzzle solving
-- Network routing
-
-The general process is:
-
-```text
-Initial State
-     |
-     v
-Possible Actions
-     |
-     v
-New States
-     |
-     v
-More Possible Actions
-     |
-     v
-Goal State?
-   /     \
- No       Yes
- |         |
-Search    Solution
-```
-
-The important idea is:
-
-> **An AI agent can solve a problem by searching through possible states until it finds a state satisfying the goal condition.**
-
----
-
-# 3. Real-World Example: Travelling from Quetta to Karachi
-
-Consider a traveler who wants to travel by road from Quetta to Karachi.
-
-A simplified representation of the main Quetta-Karachi road route is:
-
-```text
-Quetta
-   |
-Mastung
-   |
-Kalat
-   |
-Surab
-   |
-Khuzdar
-   |
-Wadh
-   |
-Bela
-   |
-Uthal
-   |
-Winder
-   |
-Hub
-   |
-Karachi
-```
-
-This is a useful example for introducing state-space representation because the journey consists of a sequence of locations connected by roads.
-
-The Quetta-Karachi road corridor includes the **N-25 / RCD Highway**, passing through important locations such as Mastung, Kalat, Surab, Khuzdar, Wadh, Bela/Uthal, Winder and Hub.
-
-For an AI course, the exact road distance is less important than the abstraction:
-
-```text
-Locations  → States
-Roads      → Connections / Actions
-Quetta     → Initial State
-Karachi    → Goal State
-```
-
----
-
-# 4. Why the Quetta-Karachi Example Is a Search Problem
-
-The real road network is much more complicated than a simple sequence.
-
-At different locations, a traveler may have multiple possible roads.
-
-A simplified branching network might look like:
-
-```text
-                         Route A
-                       /---------\
-Quetta ---- Khuzdar --             -- Karachi
-                       \---------/
-                         Route B
-```
-
-A more useful abstraction is:
-
-```text
-                  A -------- B
-                 /            \
-            Quetta              D ---- Karachi
-                 \            /
-                  C -------- E
-```
-
-Here:
-
-- `Quetta` is the initial state.
-- `Karachi` is the goal state.
-- `A, B, C, D, E` are intermediate states.
-- Connections represent possible roads or transitions.
-
-The search algorithm must determine which states to explore and in what order.
-
-The problem therefore becomes:
-
-> **Given a road network, find a sequence of states and actions that takes the agent from Quetta to Karachi.**
-
----
-
-
-# 5. From a Real-World Problem to a Formal Search Problem
-
-Before an AI system can search for a solution, the real-world problem must be represented formally.
-
-A classical search problem consists of five components:
-
-1. **Initial state**
-2. **Actions**
-3. **Transition model**
-4. **Goal test**
-5. **Path cost**
-
-These components define the problem that the search algorithm will solve.
-
----
-
-# 6. State
-
-A **state** describes a particular situation of the problem.
-
-For the road-navigation problem: `State = Current location`
-
-Possible states include: Quetta, Mastung, Kalat,  Surab, Khuzdar, Wadh, Bela, Uthal, Winder, Hub, Karachi
-
-For a maze, a state can be represented by a coordinate: (row, column) For example: (2, 3)
-
-means that the agent is currently located at row 2, column 3.
-
----
-
-# 7. Initial State
-
-The **initial state** is the state where the agent begins.
-
-For the road example: Initial State = Quetta
-
-For the maze: Initial State = (0, 0)
-
----
-
-# 8. Actions
-
-An **action** describes something the agent can do from a state.
-
-For the road problem:
-
-1. Drive from Quetta to Mastung
-2. Drive from Mastung to Kalat
-3. Drive from Kalat to Khuzdar
-4. Drive from Khuzdar to Wadh
-
-For a 2D maze, the possible actions are:
-
-- UP
-- DOWN
-- LEFT
-- RIGHT
-
-The available actions depend on the current state.  For example, if the agent is at the top row of a maze, it cannot move UP.
-
----
-
-# 9. Transition Model
-
-The **transition model** tells us what happens when an action is performed.
-
-In simple terms:
-
-> **Current State + Action --> New State**
-
-For example: **Current State** = Kalat, **Action** = Drive toward Khuzdar -->  **New State** = Khuzdar
-
-Formally: Result(Kalat, Drive-to-Khuzdar) = Khuzdar
-
-For a maze:
-
-Current State = (2,3) + Action = RIGHT  --> New State = (2,4)
-
-provided that `(2,4)` is a valid cell.
-
----
-
-# 10. Goal Test
-
-The **goal test** determines whether the current state is the desired state.
-
-For the road problem: Goal = Karachi
-
-The goal test can be expressed as:
-
-```python
-current_state == "Karachi"
-```
-
-For the maze: Goal = (4, 4)
-
-The goal test is:
-
-```python
-current_state == goal
-```
-
-If the goal test is true: **Solution found!**
-
----
-
-# 11. Path Cost
-
-A solution is a sequence of actions leading from the initial state to the goal.
-
-For example:
-
-```text
-Quetta
-   ↓
-Mastung
-   ↓
-Kalat
-   ↓
-Khuzdar
-   ↓
-Wadh
-   ↓
-Bela
-   ↓
-Uthal
-   ↓
-Winder
-   ↓
-Hub
-   ↓
-Karachi
-```
-
-If every action has the same cost:
-
-```text
-Cost of each action = 1
-```
-
-then: Path cost = Number of actions
-
-In a real navigation problem, however, actions can have different costs.
-
-For example:
-
-- Road A = 100 km
-- Road B = 150 km
-- Road C = 80 km
-
-The path cost could represent:
-
-- Distance
-- Travel time
-- Fuel consumption
-- Toll cost
-- A combination of several factors
-
-For maze lab, we simplify the problem: Cost of every movement = 1
-
-Therefore: Path cost = Number of movements
-
----
-
-# 12. State-Space Graph
-
-Once the problem has been formally defined, we can represent it as a **state-space graph**.
-
-A graph contains:
-
-```text
-Nodes  → States
-Edges  → Actions / Transitions
-```
-
-For example:
-
-```text
-        A
-       / \
-      B   C
-     / \
-    D   E
-```
-
-Here:
-
-```text
-A = Initial State
-E = Goal State
-```
-
-A possible solution is:
-
-```text
-A → B → E
-```
-
-The search algorithm determines which nodes to explore and in what order.
-
----
-
-# 13. State-Space Graph for a Road Network
-
-A simplified road network could be represented as:
-
-```text
-                         Khuzdar
-                        /       \
-                    Kalat       Wadh
-                   /              |
-              Mastung             Bela
-                 |                 |
-               Quetta             Uthal
-                                   |
-                                 Winder
-                                   |
-                                  Hub
-                                   |
-                                Karachi
-```
-
-The AI system interprets this as:
-
-```text
-Nodes = Locations
-Edges = Road connections
-Initial state = Quetta
-Goal state = Karachi
-```
-
-The actual road network may contain many more branches and connections.
-
-The AI abstraction removes unnecessary details and retains the information needed for search.
-
----
-
-# 14. State-Space Graph for a Maze
-
-Consider this maze:
+**Our running example for this entire lecture:** an agent navigating a 2D maze.
 
 ```text
 S . # .
@@ -417,664 +41,325 @@ S . # .
 . # . G
 ```
 
-Where:
-
-```text
-S = Start
-G = Goal
-. = Open cell
-# = Wall
-```
-
-Each open cell represents a possible state.
-
-For example:
-
-```text
-(0,0) = Start
-(0,1) = Open cell
-(1,0) = Open cell
-...
-(3,3) = Goal
-```
-
-The transitions are movements between adjacent open cells.
+Legend: `S` = start, `G` = goal, `.` = open cell, `#` = wall.
 
 ---
 
-# 15. Search Tree vs Search Graph
+## 3. Formalizing the Problem
 
-These two concepts should be distinguished.
+Before an algorithm can search for a solution, the problem must be defined using five components:
 
-## State-Space Graph
+1. **State**
+2. **Initial state**
+3. **Actions**
+4. **Transition model**
+5. **Goal test** (and **path cost**)
 
-The state-space graph represents the actual problem.
+### State
+A state is a situation the agent can be in. In the maze, a state is a coordinate `(row, column)` — e.g. `(2, 3)` means the agent is at row 2, column 3.
+
+### Initial State
+Where the agent begins: `Initial State = (0, 0)`.
+
+### Actions
+What the agent can do from a state. In the maze: `UP`, `DOWN`, `LEFT`, `RIGHT`. Available actions depend on the current state — e.g. an agent in the top row cannot move `UP`, and it can never move into a wall (`#`).
+
+### Transition Model
+What happens when an action is performed:
+
+> **Current State + Action → New State**
 
 ```text
-       A
-      / \
-     B---C
+Current State = (2, 3)
+Action        = RIGHT
+New State     = (2, 4)     [only if (2,4) is open, not a wall]
 ```
 
-There is a connection between B and C.
+### Goal Test
+Checks whether the current state is the goal. Here, `Goal = (3, 3)`.
 
-## Search Tree
+```python
+current_state == goal
+```
 
-A search tree represents the paths generated by the search process.
+### Path Cost
+We simplify: every movement costs `1`. So:
 
 ```text
-       A
-      / \
-     B   C
-     |
-     C
+Path cost = number of movements
 ```
 
-The same state can appear more than once in a search tree if it can be reached through different paths.
-
-This is why practical graph-search algorithms maintain a: **visited / explored set**
-
-to prevent unnecessary repeated exploration.
+(In harder problems, different actions can have different costs — e.g. distance, time, or fuel — but our maze keeps it uniform.)
 
 ---
 
-# 16. What Is Uninformed Search?
+## 4. State-Space Graph
 
-Today's topic is **Uninformed Search**.
-
-Uninformed search is also called: **Blind Search**
-
-The algorithm does not have additional information indicating which state is closer to the goal.
-
-It knows:
-
-- Initial state
-- Available actions
-- Transition model
-- Goal test
-- Path cost
-
-But it does not use a heuristic such as: **This state is probably closer to Karachi.** or: **This cell is probably closer to the exit.**
-
-The search algorithm must therefore explore the state space using a systematic strategy.
-
----
-
-# 17. Examples of Uninformed Search
-
-Important uninformed search algorithms include:
-
-- Breadth-First Search (BFS)
-- Depth-First Search (DFS)
-- Uniform-Cost Search
-- Depth-Limited Search
-- Iterative Deepening Search
-
-In this lecture we focus on:
+Once a problem is formalized, it can be drawn as a graph:
 
 ```text
-Breadth-First Search (BFS)
-Depth-First Search (DFS)
+Nodes → States
+Edges → Actions / transitions between states
 ```
 
----
-
-# 18. The Search Frontier
-
-The **frontier** is a central concept in search.
-
-The frontier contains:  **States that have been discovered but have not yet been expanded.**
-
-Consider:
+For our maze, each open cell is a node, and edges connect cells that are reachable from each other in one move:
 
 ```text
-        A
-       / \
-      B   C
-     / \
-    D   E
+(0,0)---(0,1)       (0,3)
+           |            |
+(1,0)---(1,1)       (1,3)
+                        |
+        (2,1)---(2,2)---(2,3)
+                            |
+                (3,2)---(3,3)
 ```
 
-Initially: Frontier = [A]
+*(Walls at `(0,2)`, `(1,2)`, `(2,0)`, `(3,1)` are simply absent — they contribute no nodes or edges.)*
 
-- After expanding A: Frontier = [B, C]
-- After expanding B: Frontier = [C, D, E]
-
-The search process repeatedly:
-
-1. Selects a state from the frontier.
-2. Expands that state.
-3. Generates successor states.
-4. Adds appropriate successors to the frontier.
-5. Checks whether the goal has been reached.
+`(0,0)` is the initial state, `(3,3)` is the goal state. A solution is any path through this graph from start to goal.
 
 ---
 
-# 19. Generic Search Algorithm
+## 5. Search Tree vs. Search Graph
 
-The general search process can be described as:
+These look similar but are different — a common point of confusion.
 
+**State-space graph** (above): each state appears **exactly once**, no matter how many ways there are to reach it.
+
+**Search tree**: represents the *paths* the search process tries. The same state can appear **more than once**, once for every distinct path leading to it:
+
+```text
+                (0,0)
+                  |
+                (0,1)
+                  |
+                (1,1)
+               /      \
+           (2,1)      (1,1)  ← revisited via a different path
 ```
+
+This is exactly why practical search algorithms keep an **explored set** — to stop wastefully re-expanding a state we've already visited.
+
+---
+
+## 6. What Is Uninformed Search?
+
+Today's topic is **Uninformed Search**, also called **Blind Search**.
+
+The algorithm only knows the initial state, actions, transition model, goal test, and path cost. It has **no heuristic** — no notion like "this cell is probably closer to the exit." (That's *informed* search, e.g. A\*, covered later.) So it must explore the state space using a purely systematic strategy.
+
+Common uninformed search algorithms: **BFS**, **DFS**, Uniform-Cost Search, Depth-Limited Search, Iterative Deepening Search. Today: **BFS and DFS**.
+
+---
+
+## 7. The Search Frontier
+
+The **frontier** holds states that have been discovered but not yet expanded.
+
+```text
 frontier ← {initial state}
+explored ← {}
 
 while frontier is not empty:
-
-    remove a node from frontier
-
+    node ← remove a node from frontier
     if node is goal:
         return solution
+    add node to explored
+    for each successor of node:
+        if successor not already in explored or frontier:
+            add successor to frontier
 
-    expand node
-
-    add resulting states to frontier
 return failure
 ```
 
-The crucial question is: **Which node should be removed from the frontier next?**
-
-This determines the search strategy.
+The crucial design question — **which node do we remove from the frontier next?** — is exactly where BFS and DFS diverge.
 
 ---
 
-# 20. Breadth-First Search (BFS)
+## 8. Breadth-First Search (BFS)
 
-Breadth-First Search explores the state space **level by level**.
+BFS explores **level by level**, using a **FIFO Queue** ("First In, First Out") — the oldest node in the frontier is removed first.
 
-Consider:
-
-```text
-              A
-           /     \
-          B       C
-        /  \     / \
-       D    E   F   G
-```
-
-BFS explores:
+Tracing BFS on our maze from `(0,0)`:
 
 ```text
-A
-
-B C
-
-D E F G
+Frontier: [(0,0)]
+Remove (0,0) → expand → Frontier: [(0,1),(1,0)]
+Remove (0,1) → expand → Frontier: [(1,0),(1,1)]
+Remove (1,0) → expand → Frontier: [(1,1)]        (only new state: none new)
+Remove (1,1) → expand → Frontier: [(1,3)? no — not adjacent; (2,1)]
+...continues level by level until (3,3) is reached
 ```
 
-Therefore, the search proceeds through the shallowest nodes first.
+*(Exact order depends on neighbor-generation order — the point is BFS always finishes one full "ring" of distance from start before starting the next.)*
 
-The order may be:
-
-```text
-A → B → C → D → E → F → G
-```
-
-assuming left-to-right successor ordering.
-
----
-
-# 21. BFS Frontier
-
-BFS uses a:
-
-> **FIFO Queue**
-
-FIFO means:
-
-> **First In, First Out**
-
-For example:
-
-```text
-Initial:
-
-[A]
-
-Remove A:
-
-[B, C]
-
-Remove B:
-
-[C, D, E]
-
-Remove C:
-
-[D, E, F, G]
-```
-
-The oldest node in the frontier is removed first.
-
-Therefore BFS explores the search space broadly before going deeper.
-
----
-
-# 22. BFS Pseudocode
+**Pseudocode:**
 
 ```text
 BFS(problem):
-
     frontier = Queue()
     frontier.add(initial_state)
-
     explored = empty set
 
     while frontier is not empty:
-
-        node = frontier.remove()
-
+        node = frontier.remove()      # FIFO: oldest first
         if node is goal:
             return solution
-
         add node to explored
-
         for each successor:
-
-            if successor not in explored
-               and successor not in frontier:
-
+            if successor not in explored and not in frontier:
                 frontier.add(successor)
-
     return failure
 ```
-
----
-
-# 23. Why Does BFS Find a Shortest Path?
-
-Suppose every action has the same cost.
-
-BFS explores states in order of depth:
-
-```text
-Depth 0
-Depth 1
-Depth 2
-Depth 3
-...
-```
-
-Therefore, if BFS reaches the goal at depth `d`, there cannot be a solution requiring fewer than `d` actions.
-
-Hence:
-
-> **BFS is optimal when all step costs are equal.**
-
-For today's maze:
-
-```text
-Every movement = 1
-```
-
-Therefore BFS will find a shortest path.
-
----
-
-# 25. Depth-First Search (DFS)
-
-Depth-First Search takes a different approach.
-
-Instead of exploring an entire level first, DFS follows one path as deeply as possible.
-
-Consider:
-
-```text
-              A
-           /     \
-          B       C
-        /  \     / \
-       D    E   F   G
-```
-
-DFS might explore:
-
-```text
-A
-B
-D
-E
-C
-F
-G
-```
-
-The exact order depends on the order in which successors are generated.
-
----
-
-# 26. DFS Frontier
-
-DFS uses a:
-
-> **LIFO Stack**
-
-LIFO means:
-
-> **Last In, First Out**
-
-For example:
-
-```text
-[A]
-```
-
-After expanding A:
-
-```text
-[B, C]
-```
-
-If C is the most recently added node:
-
-```text
-[B, C]
-    ↑
-    |
-  remove
-```
-
-C will be selected before B.
-
-Therefore DFS follows the most recently generated branch.
-
----
-
-# 27. DFS Pseudocode
-
-```text
-DFS(problem):
-
-    frontier = Stack()
-    frontier.add(initial_state)
-
-    explored = empty set
-
-    while frontier is not empty:
-
-        node = frontier.remove()
-
-        if node is goal:
-            return solution
-
-        add node to explored
-
-        for each successor:
-
-            if successor not in explored:
-
-                frontier.add(successor)
-
-    return failure
-```
-
----
-
-# 28. The Fundamental Difference Between BFS and DFS
-
-The most important implementation difference is how the frontier is managed.
-
-```text
-BFS
- |
- +-- Queue
- |
- +-- FIFO
- |
- +-- First inserted → First removed
-```
-
-versus:
-
-```text
-DFS
- |
- +-- Stack
- |
- +-- LIFO
- |
- +-- Last inserted → First removed
-```
-
-In Python:
 
 ```python
-# BFS
+# BFS uses:
 frontier.popleft()
 ```
 
-versus:
+**Why BFS finds the shortest path:** if all step costs are equal, BFS fully explores depth 0, then depth 1, then depth 2, and so on. So if it reaches the goal at depth `d`, no shorter solution can exist — every shallower depth was already checked and ruled out.
+
+> **BFS is optimal when all step costs are equal.** Since every move in our maze costs 1, BFS is guaranteed to return a shortest path.
+
+---
+
+## 9. Depth-First Search (DFS)
+
+DFS follows **one path as deeply as possible** before backtracking, using a **LIFO Stack** ("Last In, First Out") — the most recently added node is removed first.
+
+Tracing DFS on our maze from `(0,0)`:
+
+```text
+Frontier: [(0,0)]
+Remove (0,0) → expand → Frontier: [(0,1),(1,0)]
+Remove (1,0) → (most recent) → expand → Frontier: [(0,1)]  (no new unvisited neighbor)
+Remove (0,1) → expand → Frontier: [(1,1)]
+Remove (1,1) → expand → Frontier: [(2,1)]
+...DFS commits to this branch fully before trying alternatives
+```
+
+**Pseudocode:**
+
+```text
+DFS(problem):
+    frontier = Stack()
+    frontier.add(initial_state)
+    explored = empty set
+
+    while frontier is not empty:
+        node = frontier.remove()      # LIFO: most recent first
+        if node is goal:
+            return solution
+        add node to explored
+        for each successor:
+            if successor not in explored:
+                frontier.add(successor)
+    return failure
+```
 
 ```python
-# DFS
+# DFS uses:
 frontier.pop()
 ```
 
-This small difference produces substantially different search behavior.
+**Why DFS does not guarantee the shortest path:** if the goal is reachable both via a long branch and a short branch, DFS returns whichever one it happens to commit to and finish first — not necessarily the shorter one.
+
+> **DFS is not optimal** — it finds *a* solution, not necessarily the *best* one.
 
 ---
 
-# 29. BFS vs DFS
+## 10. The Fundamental Difference
 
-| Feature | BFS | DFS |
+```text
+BFS                          DFS
+ +-- Queue                    +-- Stack
+ +-- FIFO                     +-- LIFO
+ +-- First inserted,          +-- Last inserted,
+     first removed                first removed
+```
+
+One line of code (`popleft()` vs `pop()`) is enough to produce two completely different search behaviors.
+
+---
+
+## 11. Completeness and Optimality
+
+- **Complete:** guaranteed to find a solution if one exists (and correctly report failure otherwise).
+- **Optimal:** guaranteed to find the *best* (e.g. shortest) solution, not just *a* solution.
+
+An algorithm can be complete without being optimal — DFS is a good example.
+
+---
+
+## 12. BFS vs. DFS — Comparison Table
+
+| Feature          | BFS                                     | DFS                                              |
+|------------------|-------------------------------------------|----------------------------------------------------|
+| Strategy         | Level by level                            | Go deep first                                       |
+| Frontier         | Queue                                     | Stack                                               |
+| Data structure   | FIFO                                      | LIFO                                                |
+| Complete?        | Yes, if branching factor is finite        | Not always — can get stuck down a long/infinite branch |
+| Optimal?         | Yes, when all step costs are equal        | No                                                   |
+| Time complexity  | O(b^d)                                    | O(b^m)                                              |
+| Space complexity | O(b^d)                                    | O(b·m)                                              |
+| Memory usage     | Usually high                              | Usually lower                                       |
+| Shortest path?   | Yes, for equal step costs                 | Not guaranteed                                      |
+
+Where `b` = branching factor, `d` = depth of the shallowest solution, `m` = maximum depth of the search tree.
+
+**Branching factor** in a maze: up to 4 (`UP`, `DOWN`, `LEFT`, `RIGHT`), reduced in practice by walls and boundaries.
+
+---
+
+## 13. Why the Memory Trade-off Matters
+
+- **BFS**: worst case `O(b^d)` time *and* space — it may need to hold a huge number of frontier nodes at once, especially in a wide maze.
+- **DFS**: worst case `O(b^m)` time, but only `O(b·m)` space — it only needs to remember the current path plus untried alternatives along it.
+
+```text
+BFS → potentially very high memory usage, guaranteed shortest path
+DFS → generally low memory usage, no such guarantee
+```
+
+This time/space vs. solution-quality trade-off recurs throughout AI search.
+
+---
+
+## 14. Frontier Size (What You'll Measure in the Lab)
+
+In the lab, you'll track the **maximum frontier size during the search** — a simple proxy for memory use.
+
+| Step | Frontier Size |
+|------|----------------|
+| 1    | 1              |
+| 2    | 2              |
+| 3    | 3              |
+| 4    | 4              |
+| 5    | 3              |
+| 6    | 2              |
+
+Here, **maximum frontier size = 4**.
+
+> Frontier size is **not fixed** — it depends on maze structure, branching factor, goal location, neighbor ordering, and whether visited states are tracked. Don't memorize a number: run BFS and DFS on the *same* maze and compare their *actual* measured behavior.
+
+---
+
+## 15. Recap
+
+| Question | BFS | DFS |
 |---|---|---|
-| Strategy | Level by level | Go deep first |
-| Frontier | Queue | Stack |
-| Data structure | FIFO | LIFO |
-| Complete? | Yes, under standard finite-branching assumptions | Not always |
-| Optimal? | Yes, when all step costs are equal | No |
-| Time | O(b^d) | O(b^m) |
-| Space | O(b^d) | O(bm) |
-| Memory usage | Usually high | Usually lower |
-| Shortest path | Yes, for equal step costs | Not guaranteed |
-
-Where:
-
-- `b` = branching factor
-- `d` = depth of the shallowest solution
-- `m` = maximum depth of the search tree
+| Picks next node from frontier by... | Oldest (Queue/FIFO) | Newest (Stack/LIFO) |
+| Finds a solution if one exists? | Yes (finite branching) | Not always |
+| Finds the *shortest* solution? | Yes (equal step costs) | Not guaranteed |
+| Typical memory use | Higher | Lower |
+| Best when... | You need the shortest path and can afford the memory | Memory is limited and any valid solution will do |
 
 ---
 
-# 30. Branching Factor
-
-The **branching factor** is the approximate number of successors available from a state.
-
-For example:
-
-```text
-       State
-     /   |   \
-    A    B    C
-```
-
-The branching factor is approximately:
-
-```text
-b = 3
-```
-
-In a 2D maze, a cell can have up to four neighboring cells:
-
-```text
-       UP
-        |
-LEFT -- X -- RIGHT
-        |
-      DOWN
-```
-
-Therefore:
-
-```text
-Maximum possible branching factor ≈ 4
-```
-
-However, walls and maze boundaries usually reduce the actual number of available moves.
-
----
-
-# 31. BFS Complexity
-
-For BFS, the standard worst-case time complexity is approximately:
-
-```text
-O(b^d)
-```
-
-where:
-
-- `b` = branching factor
-- `d` = depth of the shallowest solution
-
-The major disadvantage is its memory requirement:
-
-```text
-O(b^d)
-```
-
-BFS may have to keep a large number of frontier nodes in memory.
-
-Therefore:
-
-> **BFS can be memory-intensive, especially for wide search spaces.**
-
----
-
-# 32. DFS Complexity
-
-For DFS, the standard worst-case time complexity is approximately:
-
-```text
-O(b^m)
-```
-
-where:
-
-```text
-m = maximum depth of the search tree
-```
-
-Its space complexity is approximately:
-
-```text
-O(bm)
-```
-
-Therefore, DFS can use considerably less memory than BFS.
-
-However, DFS may spend a long time exploring an unproductive branch.
-
----
-
-# 33. Why DFS Does Not Guarantee the Shortest Path
-
-Consider:
-
-```text
-             S
-            / \
-           A   B
-           |   |
-           |   G
-           |
-           |
-           G
-```
-
-Suppose the branch through A is long, while B leads directly to the goal.
-
-DFS could explore:
-
-```text
-S → A → ... → G
-```
-
-before examining:
-
-```text
-S → B → G
-```
-
-Therefore DFS may return a solution that is longer than another available solution.
-
-Hence:
-
-> **DFS is not optimal.**
-
----
-
-# 34. Why Use DFS?
-
-DFS has an important advantage:
-
-> **It generally requires less memory than BFS.**
-
-Imagine a very wide search tree.
-
-BFS may need to store:
-
-```text
-Thousands or millions of frontier nodes
-```
-
-DFS generally stores a much smaller amount of information related to the current exploration path and alternative branches.
-
-Therefore:
-
-```text
-BFS → potentially high memory usage
-
-DFS → generally lower memory usage
-```
-
----
-
-# 35. Frontier Size
-
-For the practical experiment, we will measure:
-
-> **Maximum size of the frontier during the search.**
-
-For example:
-
-```text
-Step       Frontier Size
-------------------------
-1              1
-2              2
-3              3
-4              4
-5              3
-6              2
-```
-
-Therefore:
-
-```text
-Maximum frontier size = 4
-```
-
-This provides a simple experimental measure of how much information the algorithm keeps waiting to be explored.
-
----
-
-# 36. Important Experimental Observation
-
-The frontier size is not a fixed property of BFS or DFS.
-
-It depends on:
-
-- Maze structure
-- Branching factor
-- Goal location
-- Neighbor ordering
-- Whether visited states are recorded
-- Whether duplicate states are prevented
-
-Therefore, students should not memorize a particular frontier size.
-
-Instead:
-
-> **Run both algorithms on the same maze and compare their actual behavior.**
-
----
-
+## 16. Quick Self-Check (Try Before the Lab)
+
+1. Why is BFS guaranteed to find the shortest path in the maze, while DFS is not?
+2. With branching factor 3 and a goal at depth 5, roughly how large could BFS's frontier get just before finding the goal?
+3. Give one reason you might choose DFS over BFS even though it isn't optimal.
+4. Why can the same maze cell appear twice in a search tree but only once in the state-space graph?
+5. What one-line code change turns the generic search algorithm into BFS vs. DFS?
