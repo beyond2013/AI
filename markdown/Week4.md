@@ -153,6 +153,13 @@ This is a triangle-inequality condition: the estimated cost from `n` shouldn't b
 
 ---
 
+> 🎥 **Supplementary Viewing: Search: Optimal, Branch and Bound, A\***
+> [Watch on YouTube](https://youtu.be/gGQ-vAmdAOI)
+>
+> *Credit: Patrick H. Winston, "Lecture 5: Search: Optimal, Branch and Bound, A\*," MIT 6.034 Artificial Intelligence, Fall 2010. Source: [MIT OpenCourseWare](https://ocw.mit.edu/courses/6-034-artificial-intelligence-fall-2010/). Used under a Creative Commons license.*
+>
+> This lecture builds up to A\* starting from branch and bound, then revisits admissibility and ends with an example where the heuristic must be consistent. Watch it after this section to reinforce the theory. Note that it uses map-based examples instead of the 8-Puzzle and covers some material beyond this week's scope (e.g., branch and bound and the extended list), so treat it as enrichment rather than required viewing.
+
 ## 6. Heuristics for the 8-Puzzle
 
 This is the direct bridge to your lab, where you'll implement and compare both of these:
@@ -206,3 +213,5 @@ You will implement an A\* solver for the 8-Puzzle in Python:
 3. Implement both heuristics: `misplaced_tiles(state)` and `manhattan_distance(state)`.
 4. Run A\* with each heuristic on the same set of scrambled boards.
 5. Record and compare the number of nodes expanded for each heuristic to see, empirically, how heuristic strength translates into search efficiency.
+
+## 10. 
