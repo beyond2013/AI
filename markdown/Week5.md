@@ -85,3 +85,6 @@ To overcome the weaknesses of basic Hill-Climbing, several variants exist:
 | **Local Maxima** | A sub-optimal peak where all neighbors are worse; causes standard Hill-Climbing to terminate prematurely. |
 | **Plateau** | A flat region in the state space where neighbors have equal scores. |
 | **Random-Restart** | Addresses local maximum problems by repeatedly restarting Hill-Climbing from random states until a satisfactory solution is found. |
+
+## Claude Generated Animation of various search algorithms
+- [link to Calude generated Animation Code deployed on github course repo](https://beyond2013.github.io/AI/)
