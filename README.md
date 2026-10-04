@@ -15,7 +15,7 @@
 *   **Core Concepts:** The role of domain knowledge in reducing search spaces. Greedy Best-First Search and the $A^*$ Search algorithm. Developing mathematically admissible and consistent heuristics.
 *   [**Practical Lab:**](./markdown/Lab3.md) Write an $A^*$ solver in Python for the classic 8-Puzzle game. Test the algorithm using different heuristics (e.g., Manhattan distance vs. Misplaced tiles) to measure node exploration efficiency.
 
-### Week 4: Local Search Optimization
+### [Week 4: Local Search Optimization](./markdown/Week5.md)
 *   **Content:** Problem Solving by Searching (Local searching).
 *   **Core Concepts:** Optimization problems where the goal state matters but the path to it does not. Hill Climbing, the challenge of local maxima, plateaus, and random-restart variants.
 *   **Practical Lab:** Implement a Hill Climbing algorithm in Python to solve the N-Queens problem or a 10-city Traveling Salesperson Problem (TSP). Plot the evaluation score over iterations to visualize the optimization process.
