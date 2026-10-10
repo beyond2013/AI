@@ -42,6 +42,12 @@ svg{width:100%;height:auto;display:block;touch-action:manipulation}
 input[type=range]{width:140px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--mut)}
 @media(prefers-reduced-motion:reduce){.node{transition:none}}
+.col{display:flex;flex-direction:column;gap:12px;min-width:0}
+h2.t{font-size:.95rem;margin:0 0 8px}
+.code{font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;border:1px solid var(--line);border-radius:8px;overflow:auto;background:var(--bg);margin-bottom:10px;padding:4px 0}
+.ln{display:flex;gap:8px;padding:1px 8px;white-space:pre;border-left:4px solid transparent}
+.ln i{font-style:normal;color:var(--mut);width:1.4em;text-align:right;flex:none}
+.ln.on{background:color-mix(in srgb,var(--fr) 30%,transparent);border-left-color:var(--cur);font-weight:700}
 </style></head><body><div class="wrap">
 <h1>Pathfinding Lab</h1>
 <p class="sub">Pick an algorithm, choose a start and goal by clicking nodes, then press Play or step through it.</p>
@@ -57,6 +63,7 @@ input[type=range]{width:140px}
    <span><i class="dot" style="background:var(--fr)"></i>frontier</span>
    <span><i class="dot" style="background:var(--vis)"></i>visited</span>
    <span><i class="dot" style="background:var(--ok)"></i>path</span>
+   <span><i class="dot" style="background:var(--card);border-style:dashed;border-color:var(--cur)"></i>considering</span>
   </div>
   <div class="row">
    <button class="btn pri" id="play">Play</button>
@@ -67,13 +74,15 @@ input[type=range]{width:140px}
   </div>
   <div class="row"><label style="flex:1">Step <input type="range" id="scrub" min="0" max="0" value="0" style="width:100%"></label><span id="cnt"></span></div>
  </div>
+ <div class="col"><div class="card">
+  <h2 class="t">Algorithm steps</h2><div class="code" id="code"></div>
+  <p class="note" id="note"></p></div>
  <div class="card">
-  <p class="note" id="note"></p>
   <div class="sec"><h3 id="h1">Frontier</h3><div class="chips" id="c1"></div></div>
   <div class="sec"><h3 id="h2">Visited</h3><div class="chips" id="c2"></div></div>
   <div class="sec"><h3 id="h3">Path</h3><div class="chips" id="c3"></div></div>
   <div class="sec" id="allsec" hidden><h3 id="h4">All paths</h3><div class="list chips" id="c4" style="flex-direction:column;flex-wrap:nowrap"></div></div>
- </div>
+ </div></div>
 </div>
 </div>
 <script>
@@ -92,62 +101,95 @@ const cost=p=>p.slice(1).reduce((c,n,i)=>c+W(p[i],n),0);
 const pp=(par,n)=>{const r=[];for(;n;n=par[n])r.unshift(n);return r};
 const pairs=p=>p.slice(1).map((n,i)=>ek(p[i],n));
 const treeOf=par=>Object.keys(par).filter(k=>par[k]).map(k=>ek(par[k],k));
-const add=o=>steps.push(Object.assign({fr:[],vis:[],path:[],tree:[],nf:0,note:""},o));
+const add=o=>steps.push(Object.assign({fr:[],vis:[],path:[],tree:[],nf:0,note:"",line:-1,cons:null},o));
 const fl=l=>l.map(n=>({n,t:n}));
 
 function build(){
  steps=[];found=[];idx=0;
  if(alg==="BFS"||alg==="DFS"){
-  const dfs=alg==="DFS";let fr=[[S,null]],vis=[],par={};
-  add({fr:fl([S]),note:`Start: put ${S} on the ${dfs?"stack":"queue"}.`});
+  const dfs=alg==="DFS",Q=dfs?"stack":"queue";
+  let fr=[[S,null]],vis=[],par={},cur=null,pth=[];
+  const sn=(line,note,x={})=>add(Object.assign({line,cur,fr:fl(fr.map(f=>f[0])),vis:[...vis],path:pth,tree:treeOf(par),note},x));
+  sn(0,`Put ${S} in the ${Q}.`);
   while(fr.length){
-   const [n,p]=dfs?fr.pop():fr.shift();
-   if(vis.includes(n))continue;
-   vis.push(n);par[n]=p;const path=pp(par,n),tree=treeOf(par);
-   if(n===G){add({cur:n,fr:fl(fr.map(f=>f[0])),vis:[...vis],path,tree,done:1,note:`Goal ${G} reached after expanding ${vis.length} nodes. Path cost ${cost(path)}.`});return}
-   const nb=adj[n].map(x=>x[0]).filter(x=>!vis.includes(x)&&(dfs||!fr.some(f=>f[0]===x)));
-   (dfs?[...nb].reverse():nb).forEach(x=>fr.push([x,n]));
-   add({cur:n,fr:fl(fr.map(f=>f[0])),vis:[...vis],path,tree,note:`Expand ${n}: add ${nb.join(", ")||"nothing new"} to the ${dfs?"stack":"queue"}.`});
+   cur=null;sn(1,`The ${Q} is not empty (${fr.length} item${fr.length>1?"s":""}).`);
+   const [n,p]=dfs?fr.pop():fr.shift();cur=n;pth=[];
+   sn(2,`${dfs?"Pop the top":"Dequeue the front"}: ${n}${p?` (reached from ${p})`:""}.`);
+   if(vis.includes(n)){sn(3,`${n} was already visited, so skip it.`);continue}
+   vis.push(n);par[n]=p;pth=pp(par,n);
+   if(n===G){sn(5,`${n} is the goal! Path ${pth.join("-")}, cost ${cost(pth)}.`,{done:1});return}
+   sn(4,`Mark ${n} visited. It is not the goal.`);
+   const all=adj[n].map(x=>x[0]);
+   sn(6,`Neighbours of ${n}: ${all.join(", ")||"none"}.`);
+   for(const m of dfs?[...all].reverse():all){
+    if(vis.includes(m))sn(7,`${m} is already visited: ignore it.`,{cons:m});
+    else if(!dfs&&fr.some(f=>f[0]===m))sn(7,`${m} is already in the queue: ignore it.`,{cons:m});
+    else{fr.push([m,n]);sn(7,`${m} is new: parent[${m}] = ${n}, ${dfs?"push":"enqueue"} ${m}.`,{cons:m})}
+   }
   }
-  add({vis:[...vis],done:1,fail:1,note:"Frontier is empty: no path exists."});
+  cur=null;sn(8,"The "+Q+" is empty: no path exists.",{done:1,fail:1});
  }else if(alg==="A*"){
-  let open={[S]:{g:0,p:null}},closed=[],par={};
-  add({fr:[{n:S,t:`${S} g=0 h=${h(S).toFixed(1)} f=${h(S).toFixed(1)}`}],note:`Start: open list holds ${S}.`});
+  let open={[S]:{g:0,p:null}},closed=[],par={},cur=null,pth=[];
+  const f=k=>open[k].g+h(k);
+  const frs=()=>Object.keys(open).sort((a,b)=>f(a)-f(b)||h(a)-h(b)||a.localeCompare(b)).map(k=>({n:k,t:`${k} g=${open[k].g} h=${h(k).toFixed(1)} f=${f(k).toFixed(1)}`}));
+  const sn=(line,note,x={})=>add(Object.assign({line,cur,fr:frs(),vis:[...closed],path:pth,tree:treeOf(par),note},x));
+  sn(0,`Open list = {${S}}, g(${S}) = 0.`);
   while(Object.keys(open).length){
-   const f=k=>open[k].g+h(k);
-   const n=Object.keys(open).sort((a,b)=>f(a)-f(b)||h(a)-h(b)||a.localeCompare(b))[0],o=open[n];
-   delete open[n];closed.push(n);par[n]=o.p;const path=pp(par,n),tree=treeOf(par);
-   const frs=()=>Object.keys(open).sort((a,b)=>f(a)-f(b)).map(k=>({n:k,t:`${k} g=${open[k].g} h=${h(k).toFixed(1)} f=${f(k).toFixed(1)}`}));
-   if(n===G){add({cur:n,fr:frs(),vis:[...closed],path,tree,done:1,note:`Goal reached with the lowest f. Optimal cost ${o.g}.`});return}
-   const up=[];
-   for(const [m,w] of adj[n]){if(closed.includes(m))continue;const g=o.g+w;if(!open[m]||g<open[m].g){open[m]={g,p:n};up.push(m)}}
-   add({cur:n,fr:frs(),vis:[...closed],path,tree,note:`Expand ${n} (lowest f = g+h = ${(o.g+h(n)).toFixed(1)}). Updated: ${up.join(", ")||"none"}.`});
+   cur=null;sn(1,`Open list has ${Object.keys(open).length} node(s).`);
+   const n=frs()[0].n,o=open[n];cur=n;pth=[];
+   sn(2,`Pick ${n}: lowest f = g + h = ${o.g} + ${h(n).toFixed(1)} = ${(o.g+h(n)).toFixed(1)}.`);
+   delete open[n];closed.push(n);par[n]=o.p;pth=pp(par,n);
+   if(n===G){sn(4,`${n} is the goal! Optimal cost = ${o.g}.`,{done:1});return}
+   sn(3,`Move ${n} to the closed list. It is not the goal.`);
+   sn(5,`Neighbours of ${n}: ${adj[n].map(x=>x[0]).join(", ")}.`);
+   for(const [m,w] of adj[n]){
+    if(closed.includes(m)){sn(6,`${m} is closed: ignore it.`,{cons:m});continue}
+    const g2=o.g+w;
+    sn(7,`g' = g(${n}) + cost(${n},${m}) = ${o.g} + ${w} = ${g2}.`,{cons:m});
+    if(!open[m]||g2<open[m].g){
+     const old=open[m];open[m]={g:g2,p:n};
+     sn(9,old?`${g2} < ${old.g}: update g(${m}) and parent = ${n}.`:`${m} is new: add to open, parent = ${n}, f = ${g2} + ${h(m).toFixed(1)} = ${(g2+h(m)).toFixed(1)}.`,{cons:m});
+    }else sn(8,`${g2} is not better than g(${m}) = ${open[m].g}: keep the old route.`,{cons:m});
+   }
   }
-  add({vis:[...closed],done:1,fail:1,note:"Open list is empty: no path exists."});
+  cur=null;sn(10,"The open list is empty: no path exists.",{done:1,fail:1});
  }else if(alg==="Hill Climbing"){
-  let cur=S,vis=[S],path=[S];
-  add({cur,vis:[...vis],path:[...path],note:`Start at ${S} (h=${h(S).toFixed(1)}). Always move to the neighbour closest to the goal.`});
+  let cur=S,vis=[S],path=[S],fr=[];
+  const sn=(line,note,x={})=>add(Object.assign({line,cur,fr,vis:[...vis],path:[...path],tree:pairs(path),note},x));
+  sn(0,`Start at ${S} (h = ${h(S).toFixed(1)}).`);
   while(true){
-   if(cur===G){add({cur,vis:[...vis],path:[...path],tree:pairs(path),done:1,note:`Goal reached. Path cost ${cost(path)}.`});return}
+   fr=[];
+   if(cur===G){sn(2,`${cur} is the goal! Path cost ${cost(path)}.`,{done:1});return}
    const c=adj[cur].map(x=>x[0]).filter(x=>!vis.includes(x)).sort((a,b)=>h(a)-h(b));
-   const fr=c.map(n=>({n,t:`${n} h=${h(n).toFixed(1)}`}));
-   if(!c.length||h(c[0])>=h(cur)){add({cur,fr,vis:[...vis],path:[...path],tree:pairs(path),done:1,fail:1,note:`Stuck at ${cur}: no unvisited neighbour is closer to the goal (local optimum). Hill climbing cannot backtrack.`});return}
-   add({cur,fr,vis:[...vis],path:[...path],tree:pairs(path),note:`At ${cur} (h=${h(cur).toFixed(1)}). Best neighbour is ${c[0]} (h=${h(c[0]).toFixed(1)}).`});
-   cur=c[0];vis.push(cur);path.push(cur);
+   fr=c.map(n=>({n,t:`${n} h=${h(n).toFixed(1)}`}));
+   sn(3,`Unvisited neighbours of ${cur}: ${c.join(", ")||"none"}.`);
+   if(!c.length||h(c[0])>=h(cur)){sn(5,c.length?`Best neighbour ${c[0]} has h = ${h(c[0]).toFixed(1)}, not below h(${cur}) = ${h(cur).toFixed(1)}. Stuck in a local optimum.`:`No unvisited neighbours. Stuck.`,{cons:c[0],done:1,fail:1});return}
+   sn(4,`Lowest h is ${c[0]} (${h(c[0]).toFixed(1)}), better than h(${cur}) = ${h(cur).toFixed(1)}.`,{cons:c[0]});
+   fr=[];cur=c[0];vis.push(cur);path.push(cur);
+   sn(6,`Move to ${cur} and mark it visited.`);
   }
  }else{
   let cap=false;
   const rec=(n,path)=>{
    if(steps.length>6000){cap=true;return}
-   if(n===G){found.push([...path]);add({cur:n,path:[...path],nf:found.length,hit:1,note:`Path #${found.length}: ${path.join("-")} (cost ${cost(path)}).`});return}
-   add({cur:n,path:[...path],nf:found.length,note:`Extend ${path.join("-")}. Try every unused neighbour, then backtrack.`});
-   for(const [m] of adj[n])if(!path.includes(m)){path.push(m);rec(m,path);path.pop()}
+   if(n===G){found.push([...path]);add({line:2,cur:n,path:[...path],nf:found.length,hit:1,note:`Goal! Record path #${found.length}: ${path.join("-")} (cost ${cost(path)}).`});return}
+   add({line:1,cur:n,path:[...path],nf:found.length,note:`At ${n} with path ${path.join("-")}.`});
+   for(const [m] of adj[n])if(!path.includes(m)){
+    add({line:3,cur:n,cons:m,path:[...path],nf:found.length,note:`${m} is not on the path yet: explore ${path.join("-")}-${m}.`});
+    path.push(m);rec(m,path);path.pop();
+   }
   };
   rec(S,[S]);
   const best=[...found].sort((a,b)=>cost(a)-cost(b))[0];
-  add({cur:G,path:best||[],nf:found.length,done:1,note:`${found.length} simple path${found.length===1?"":"s"} found${cap?" (search capped)":""}. Cheapest: ${best?best.join("-")+" (cost "+cost(best)+")":"none"}.`});
+  add({line:5,cur:G,path:best||[],nf:found.length,done:1,note:`${found.length} simple path${found.length===1?"":"s"} found${cap?" (search capped)":""}. Cheapest: ${best?best.join("-")+" (cost "+cost(best)+")":"none"}.`});
  }
 }
+const PS=(()=>{const q=(a,b)=>[["queue ← [start]; visited ← {}",0],["while queue is not empty:",0],["n ← dequeue front",1],["if n already visited: continue",1],["mark n visited",1],["if n = goal: return path",1],["for each neighbour m of n:",1],["if m is new: parent[m] ← n; enqueue m",2],["return failure",0]];
+ const d=q().map(x=>[x[0].replace("queue","stack").replace("dequeue front","pop top").replace("enqueue","push").replace("is new","is unvisited"),x[1]]);
+ return{BFS:q(),DFS:d,"A*":[["open ← {start}; g[start] ← 0",0],["while open is not empty:",0],["n ← node in open with lowest f = g + h",1],["move n from open to closed",1],["if n = goal: return path",1],["for each neighbour m of n:",1],["if m is closed: continue",2],["g' ← g[n] + cost(n, m)",2],["if m not in open or g' < g[m]:",2],["g[m] ← g'; parent[m] ← n; open ← m",3],["return failure",0]],
+ "Hill Climbing":[["current ← start",0],["repeat:",0],["if current = goal: return path",1],["candidates ← unvisited neighbours",1],["best ← candidate with lowest h",1],["if none or h(best) ≥ h(current): stop",1],["current ← best; mark visited",1]],
+ "British Museum":[["explore(path):",0],["n ← last node of path",1],["if n = goal: record path; return",1],["for each neighbour m not in path:",1],["explore(path + m)  # then backtrack",2],["explore([start]); pick cheapest recorded",0]]}})();
+function renderCode(){$("code").innerHTML=PS[alg].map((l,i)=>`<div class="ln"><i>${i+1}</i>${"    ".repeat(l[1])}${l[0].replace(/</g,"&lt;")}</div>`).join("")}
 
 // ---- drawing
 const svg=document.getElementById("svg"),NS="http://www.w3.org/2000/svg";
@@ -184,7 +226,8 @@ function render(){
   if(used[k]){c="var(--ok)";w=3+Math.min(used[k],6);o=Math.min(.25+used[k]*.12,.9)}
   if(s.tree.includes(k)){c="var(--vis)";w=4}
   if(pe.includes(k)){c=bm&&!s.done&&!s.hit?"var(--fr)":"var(--ok)";w=6;o=1}
-  L.setAttribute("stroke",c);L.setAttribute("stroke-width",w);L.setAttribute("opacity",o);
+  const cs=s.cons&&s.cur&&k===ek(s.cur,s.cons);if(cs){c="var(--cur)";w=4;o=1}
+  L.setAttribute("stroke",c);L.setAttribute("stroke-width",w);L.setAttribute("opacity",o);L.setAttribute("stroke-dasharray",cs?"7 5":"");
  }
  const fn=s.fr.map(f=>f.n);
  for(const n in nodes){
@@ -192,12 +235,12 @@ function render(){
   if(bm){if(s.path.includes(n))f=s.done||s.hit?"var(--ok)":"var(--fr)"}
   else{if(s.vis.includes(n))f="var(--vis)";if(fn.includes(n))f="var(--fr)";if(s.path.includes(n)&&s.done&&!s.fail)f="var(--ok)"}
   if(n===s.cur)f="var(--cur)";
-  nodes[n].setAttribute("fill",f);
+  nodes[n].setAttribute("fill",f);const cn=n===s.cons;nodes[n].style.stroke=cn?"var(--cur)":"";nodes[n].style.strokeWidth=cn?"5":"";nodes[n].style.strokeDasharray=cn?"4 3":"";
   hs[n].textContent=(alg==="A*"||alg==="Hill Climbing")?"h="+h(n).toFixed(1):"";
   tags[n].textContent=n===S?"start":n===G?"goal":"";
   tags[n].setAttribute("fill",n===S?"var(--vis)":"var(--cur)");
  }
- $("note").textContent=s.note;
+ $("note").textContent=s.note;document.querySelectorAll("#code .ln").forEach((e,i)=>e.classList.toggle("on",i===s.line));
  const pth=s.path;
  $("c3").innerHTML=pth.length?`<span class="chip ok">${pth.join(" → ")}</span><span class="chip">cost ${cost(pth)}</span>`:'<span class="chip">none yet</span>';
  if(bm){
@@ -222,10 +265,10 @@ function play(){
  if(timer){stop();render();return}
  if(idx>=steps.length-1)idx=0;
  const bm=alg==="British Museum";
- const ms=(11-$("spd").value)*(bm?25:100);
+ const ms=(11-$("spd").value)*(bm?20:80);
  timer=setInterval(tick,ms);render();
 }
-function restart(){stop();build();render()}
+function restart(){stop();build();renderCode();render()}
 
 $("algs").innerHTML=ALGS.map(a=>`<button data-a="${a}" class="${a===alg?"on":""}">${a}</button>`).join("");
 $("algs").onclick=e=>{const a=e.target.dataset.a;if(!a)return;alg=a;[...$("algs").children].forEach(b=>b.classList.toggle("on",b.dataset.a===a));restart()};
