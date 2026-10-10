@@ -42,6 +42,7 @@ svg{width:100%;height:auto;display:block;touch-action:manipulation}
 input[type=range]{width:140px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--mut)}
 @media(prefers-reduced-motion:reduce){.node{transition:none}}
+.cap{font-size:12.5px;color:var(--mut);margin:0 0 8px}
 .col{display:flex;flex-direction:column;gap:12px;min-width:0}
 h2.t{font-size:.95rem;margin:0 0 8px}
 .code{font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;border:1px solid var(--line);border-radius:8px;overflow:auto;background:var(--bg);margin-bottom:10px;padding:4px 0}
@@ -56,7 +57,7 @@ h2.t{font-size:.95rem;margin:0 0 8px}
  <div class="seg" id="modes"><button data-m="start" class="on">Set start</button><button data-m="goal">Set goal</button></div>
 </div>
 <div class="grid">
- <div class="card">
+ <div class="col"><div class="card">
   <svg id="svg" viewBox="0 0 620 340" role="img" aria-label="Graph"></svg>
   <div class="legend" id="legend"></div>
   <div class="row">
@@ -68,6 +69,7 @@ h2.t{font-size:.95rem;margin:0 0 8px}
   </div>
   <div class="row"><label style="flex:1">Step <input type="range" id="scrub" min="0" max="0" value="0" style="width:100%"></label><span id="cnt"></span></div>
  </div>
+ <div class="card"><h2 class="t">Equivalent search tree</h2><p class="cap" id="thelp"></p><div id="twrap" style="overflow:auto"><svg id="tsvg" role="img" aria-label="Search tree"></svg></div></div></div>
  <div class="col"><div class="card">
   <h2 class="t">Algorithm steps</h2><div class="code" id="code"></div>
   <p class="note" id="note"></p></div>
@@ -95,22 +97,25 @@ const cost=p=>p.slice(1).reduce((c,n,i)=>c+W(p[i],n),0);
 const pp=(par,n)=>{const r=[];for(;n;n=par[n])r.unshift(n);return r};
 const pairs=p=>p.slice(1).map((n,i)=>ek(p[i],n));
 const treeOf=par=>Object.keys(par).filter(k=>par[k]).map(k=>ek(par[k],k));
-const add=o=>steps.push(Object.assign({fr:[],vis:[],path:[],tree:[],nf:0,note:"",line:-1,cons:null},o));
+const add=o=>steps.push(Object.assign({fr:[],vis:[],path:[],tree:[],nf:0,note:"",line:-1,cons:null,tc:-1},o));
 const fl=l=>l.map(n=>({n,t:n}));
 
+let T=[],TL={w:1,md:0};
+const tn=(l,p,x={})=>{const o=Object.assign({id:T.length,l,p,b:steps.length},x);T.push(o);return o.id};
 function build(){
- steps=[];found=[];idx=0;
+ steps=[];found=[];idx=0;T=[];
  if(alg==="BFS"||alg==="DFS"){
   const dfs=alg==="DFS",Q=dfs?"stack":"queue";
-  let fr=[[S,null]],vis=[],par={},cur=null,pth=[];
-  const sn=(line,note,x={})=>add(Object.assign({line,cur,fr:fl(fr.map(f=>f[0])),vis:[...vis],path:pth,tree:treeOf(par),note},x));
+  let fr=[[S,null,0]],vis=[],par={},cur=null,pth=[],tc=-1;
+  tn(S,-1);
+  const sn=(line,note,x={})=>add(Object.assign({line,cur,tc,fr:fl(fr.map(f=>f[0])),vis:[...vis],path:pth,tree:treeOf(par),note},x));
   sn(0,`Put ${S} in the ${Q}.`);
   while(fr.length){
-   cur=null;sn(1,`The ${Q} is not empty (${fr.length} item${fr.length>1?"s":""}).`);
-   const [n,p]=dfs?fr.pop():fr.shift();cur=n;pth=[];
+   cur=null;tc=-1;sn(1,`The ${Q} is not empty (${fr.length} item${fr.length>1?"s":""}).`);
+   const [n,p,id]=dfs?fr.pop():fr.shift();cur=n;tc=id;pth=[];
    sn(2,`${dfs?"Pop the top":"Dequeue the front"}: ${n}${p?` (reached from ${p})`:""}.`);
-   if(vis.includes(n)){sn(3,`${n} was already visited, so skip it.`);continue}
-   vis.push(n);par[n]=p;pth=pp(par,n);
+   if(vis.includes(n)){T[id].dup=steps.length;sn(3,`${n} was already visited, so skip it.`);continue}
+   vis.push(n);par[n]=p;pth=pp(par,n);T[id].exp=steps.length;
    if(n===G){sn(5,`${n} is the goal! Path ${pth.join("-")}, cost ${cost(pth)}.`,{done:1});return}
    sn(4,`Mark ${n} visited. It is not the goal.`);
    const all=adj[n].map(x=>x[0]);
@@ -118,21 +123,22 @@ function build(){
    for(const m of dfs?[...all].reverse():all){
     if(vis.includes(m))sn(7,`${m} is already visited: ignore it.`,{cons:m});
     else if(!dfs&&fr.some(f=>f[0]===m))sn(7,`${m} is already in the queue: ignore it.`,{cons:m});
-    else{fr.push([m,n]);sn(7,`${m} is new: parent[${m}] = ${n}, ${dfs?"push":"enqueue"} ${m}.`,{cons:m})}
+    else{const t2=tn(m,id);fr.push([m,n,t2]);sn(7,`${m} is new: parent[${m}] = ${n}, ${dfs?"push":"enqueue"} ${m}.`,{cons:m})}
    }
   }
-  cur=null;sn(8,"The "+Q+" is empty: no path exists.",{done:1,fail:1});
+  cur=null;tc=-1;sn(8,"The "+Q+" is empty: no path exists.",{done:1,fail:1});
  }else if(alg==="A*"){
-  let open={[S]:{g:0,p:null}},closed=[],par={},cur=null,pth=[];
+  let open={[S]:{g:0,p:null,t:0}},closed=[],par={},cur=null,pth=[],tc=-1;
+  tn(S,-1,{s:`f=${h(S).toFixed(1)}`});
   const f=k=>open[k].g+h(k);
   const frs=()=>Object.keys(open).sort((a,b)=>f(a)-f(b)||h(a)-h(b)||a.localeCompare(b)).map(k=>({n:k,t:`${k} g=${open[k].g} h=${h(k).toFixed(1)} f=${f(k).toFixed(1)}`}));
-  const sn=(line,note,x={})=>add(Object.assign({line,cur,fr:frs(),vis:[...closed],path:pth,tree:treeOf(par),note},x));
+  const sn=(line,note,x={})=>add(Object.assign({line,cur,tc,fr:frs(),vis:[...closed],path:pth,tree:treeOf(par),note},x));
   sn(0,`Open list = {${S}}, g(${S}) = 0.`);
   while(Object.keys(open).length){
-   cur=null;sn(1,`Open list has ${Object.keys(open).length} node(s).`);
-   const n=frs()[0].n,o=open[n];cur=n;pth=[];
+   cur=null;tc=-1;sn(1,`Open list has ${Object.keys(open).length} node(s).`);
+   const n=frs()[0].n,o=open[n];cur=n;tc=o.t;pth=[];
    sn(2,`Pick ${n}: lowest f = g + h = ${o.g} + ${h(n).toFixed(1)} = ${(o.g+h(n)).toFixed(1)}.`);
-   delete open[n];closed.push(n);par[n]=o.p;pth=pp(par,n);
+   delete open[n];closed.push(n);par[n]=o.p;pth=pp(par,n);T[o.t].exp=steps.length;
    if(n===G){sn(4,`${n} is the goal! Optimal cost = ${o.g}.`,{done:1});return}
    sn(3,`Move ${n} to the closed list. It is not the goal.`);
    sn(5,`Neighbours of ${n}: ${adj[n].map(x=>x[0]).join(", ")}.`);
@@ -141,42 +147,68 @@ function build(){
     const g2=o.g+w;
     sn(7,`g' = g(${n}) + cost(${n},${m}) = ${o.g} + ${w} = ${g2}.`,{cons:m});
     if(!open[m]||g2<open[m].g){
-     const old=open[m];open[m]={g:g2,p:n};
+     const old=open[m];if(old)T[old.t].dup=steps.length;
+     const t2=tn(m,o.t,{s:`f=${(g2+h(m)).toFixed(1)}`});open[m]={g:g2,p:n,t:t2};
      sn(9,old?`${g2} < ${old.g}: update g(${m}) and parent = ${n}.`:`${m} is new: add to open, parent = ${n}, f = ${g2} + ${h(m).toFixed(1)} = ${(g2+h(m)).toFixed(1)}.`,{cons:m});
     }else sn(8,`${g2} is not better than g(${m}) = ${open[m].g}: keep the old route.`,{cons:m});
    }
   }
-  cur=null;sn(10,"The open list is empty: no path exists.",{done:1,fail:1});
+  cur=null;tc=-1;sn(10,"The open list is empty: no path exists.",{done:1,fail:1});
  }else if(alg==="Hill Climbing"){
-  let cur=S,vis=[S],path=[S],fr=[];
-  const sn=(line,note,x={})=>add(Object.assign({line,cur,fr,vis:[...vis],path:[...path],tree:pairs(path),note},x));
+  let cur=S,vis=[S],path=[S],fr=[],tc=tn(S,-1,{s:`h=${h(S).toFixed(1)}`});
+  const sn=(line,note,x={})=>add(Object.assign({line,cur,tc,fr,vis:[...vis],path:[...path],tree:pairs(path),note},x));
   sn(0,`Start at ${S} (h = ${h(S).toFixed(1)}).`);
   while(true){
    fr=[];
    if(cur===G){sn(2,`${cur} is the goal! Path cost ${cost(path)}.`,{done:1});return}
    const c=adj[cur].map(x=>x[0]).filter(x=>!vis.includes(x)).sort((a,b)=>h(a)-h(b));
    fr=c.map(n=>({n,t:`${n} h=${h(n).toFixed(1)}`}));
+   const ids={};c.forEach(x=>ids[x]=tn(x,tc,{s:`h=${h(x).toFixed(1)}`}));
    sn(3,`Unvisited neighbours of ${cur}: ${c.join(", ")||"none"}.`);
    if(!c.length||h(c[0])>=h(cur)){sn(5,c.length?`Best neighbour ${c[0]} has h = ${h(c[0]).toFixed(1)}, not below h(${cur}) = ${h(cur).toFixed(1)}. Stuck in a local optimum.`:`No unvisited neighbours. Stuck.`,{cons:c[0],done:1,fail:1});return}
    sn(4,`Lowest h is ${c[0]} (${h(c[0]).toFixed(1)}), better than h(${cur}) = ${h(cur).toFixed(1)}.`,{cons:c[0]});
-   fr=[];cur=c[0];vis.push(cur);path.push(cur);
+   c.slice(1).forEach(x=>T[ids[x]].dup=steps.length);T[tc].exp=steps.length;
+   tc=ids[c[0]];fr=[];cur=c[0];vis.push(cur);path.push(cur);
    sn(6,`Move to ${cur} and mark it visited.`);
   }
  }else{
-  let cap=false;
-  const rec=(n,path)=>{
+  let cap=false;const fid=[];
+  const rec=(n,path,id)=>{
    if(steps.length>6000){cap=true;return}
-   if(n===G){found.push([...path]);add({line:2,cur:n,path:[...path],nf:found.length,hit:1,note:`Goal! Record path #${found.length}: ${path.join("-")} (cost ${cost(path)}).`});return}
-   add({line:1,cur:n,path:[...path],nf:found.length,note:`At ${n} with path ${path.join("-")}.`});
+   if(n===G){T[id].hit=steps.length;found.push([...path]);fid.push(id);add({line:2,cur:n,tc:id,path:[...path],nf:found.length,hit:1,note:`Goal! Record path #${found.length}: ${path.join("-")} (cost ${cost(path)}).`});return}
+   add({line:1,cur:n,tc:id,path:[...path],nf:found.length,note:`At ${n} with path ${path.join("-")}.`});
    for(const [m] of adj[n])if(!path.includes(m)){
-    add({line:3,cur:n,cons:m,path:[...path],nf:found.length,note:`${m} is not on the path yet: explore ${path.join("-")}-${m}.`});
-    path.push(m);rec(m,path);path.pop();
+    add({line:3,cur:n,tc:id,cons:m,path:[...path],nf:found.length,note:`${m} is not on the path yet: explore ${path.join("-")}-${m}.`});
+    const t2=tn(m,id);path.push(m);rec(m,path,t2);path.pop();
    }
+   T[id].exp=steps.length;
   };
-  rec(S,[S]);
-  const best=[...found].sort((a,b)=>cost(a)-cost(b))[0];
-  add({line:5,cur:G,path:best||[],nf:found.length,done:1,note:`${found.length} simple path${found.length===1?"":"s"} found${cap?" (search capped)":""}. Cheapest: ${best?best.join("-")+" (cost "+cost(best)+")":"none"}.`});
+  rec(S,[S],tn(S,-1));
+  const bi=found.map((p,i)=>i).sort((a,b)=>cost(found[a])-cost(found[b]))[0],best=found[bi];
+  add({line:5,cur:G,tc:best?fid[bi]:-1,path:best||[],nf:found.length,done:1,note:`${found.length} simple path${found.length===1?"":"s"} found${cap?" (search capped)":""}. Cheapest: ${best?best.join("-")+" (cost "+cost(best)+")":"none"}.`});
  }
+}
+function layout(){
+ const kids=T.map(()=>[]);T.forEach(n=>{if(n.p>=0)kids[n.p].push(n.id)});
+ let x=0,md=0;
+ const go=(i,d)=>{T[i].d=d;md=Math.max(md,d);const k=kids[i];if(!k.length)T[i].x=x++;else{k.forEach(c=>go(c,d+1));T[i].x=(T[k[0]].x+T[k[k.length-1]].x)/2}};
+ go(0,0);TL={w:Math.max(x,1),md};
+}
+const TH={BFS:"Each box is a discovered state and its parent is where it was reached from. Levels fill in one row at a time. Compare with the graph: the tree shows why a node is visited when it is.",DFS:"Each box is a discovered state. The tree grows deep along one branch before the others, and grey boxes are stack duplicates that were skipped.",
+"A*":"Each box shows f = g + h. A node can appear twice if a cheaper route is found later, and the older copy turns grey.",
+"Hill Climbing":"The chosen child continues the chain, and its siblings (the other candidates) are grey dead ends that are never revisited.",
+"British Museum":"Every simple path is a root-to-leaf branch. Green leaves reach the goal, finished boxes are blue, and the amber chain is the path being tried."};
+function drawTree(s){
+ const ts=$("tsvg"),X=34,Y=52,W=Math.max(TL.w*X+30,300),H=(TL.md+1)*Y+22;
+ ts.setAttribute("viewBox",`0 0 ${W} ${H}`);ts.style.width=W>640?W+"px":"100%";ts.style.maxWidth="none";
+ const anc=new Set();for(let i=s.tc;i>=0&&T[i];i=T[i].p)anc.add(i);
+ const okc=s.done&&!s.fail,V=T.filter(n=>n.b<=idx),px=n=>n.x*X+15+X/2,py=n=>n.d*Y+20;
+ const col=n=>okc&&n.id===s.tc?"var(--ok)":n.id===s.tc?"var(--cur)":n.hit!==undefined&&n.hit<=idx?"var(--ok)":n.dup!==undefined&&n.dup<=idx?"var(--line)":n.exp!==undefined&&n.exp<=idx?"var(--vis)":"var(--fr)";
+ let o="";
+ V.forEach(n=>{if(n.p>=0){const a=anc.has(n.id);o+=`<line x1="${px(T[n.p])}" y1="${py(T[n.p])}" x2="${px(n)}" y2="${py(n)}" stroke="${a?(okc?"var(--ok)":"var(--fr)"):"var(--line)"}" stroke-width="${a?4:2}"/>`}});
+ V.forEach(n=>{o+=`<circle cx="${px(n)}" cy="${py(n)}" r="12" fill="${col(n)}" stroke="var(--ink)" stroke-width="1.5"/><text x="${px(n)}" y="${py(n)}" class="lbl" style="font-size:12px">${n.l}</text>`+(n.s?`<text x="${px(n)}" y="${py(n)+23}" class="small" style="font-size:9px">${n.s}</text>`:"")});
+ ts.innerHTML=o;
+ if(W>640&&T[s.tc]){const w=$("twrap");w.scrollLeft=px(T[s.tc])-w.clientWidth/2}
 }
 const PS=(()=>{const q=(a,b)=>[["queue ← [start]; visited ← {}",0],["while queue is not empty:",0],["n ← dequeue front",1],["if n already visited: continue",1],["mark n visited",1],["if n = goal: return path",1],["for each neighbour m of n:",1],["if m is new: parent[m] ← n; enqueue m",2],["return failure",0]];
  const d=q().map(x=>[x[0].replace("queue","stack").replace("dequeue front","pop top").replace("enqueue","push").replace("is new","is unvisited"),x[1]]);
@@ -194,7 +226,7 @@ function renderLegend(){
  const row=(c,b,x,st="")=>`<div><i class="dot" style="background:${c};${st}"></i><b>${b}:</b> ${x}</div>`;
  $("legend").innerHTML=DEF[alg].map(([b,x])=>row(DOT[b.split(" ")[0]],b,x)).join("")+row("var(--card)","Considering","The neighbour being checked right now (dashed outline and edge).","border-style:dashed;border-color:var(--cur)");
 }
-function renderCode(){renderLegend();$("code").innerHTML=PS[alg].map((l,i)=>`<div class="ln"><i>${i+1}</i>${"    ".repeat(l[1])}${l[0].replace(/</g,"&lt;")}</div>`).join("")}
+function renderCode(){renderLegend();$("thelp").textContent=TH[alg];$("code").innerHTML=PS[alg].map((l,i)=>`<div class="ln"><i>${i+1}</i>${"    ".repeat(l[1])}${l[0].replace(/</g,"&lt;")}</div>`).join("")}
 
 // ---- drawing
 const svg=document.getElementById("svg"),NS="http://www.w3.org/2000/svg";
@@ -261,7 +293,7 @@ function render(){
   $("h2").textContent=alg==="A*"?"Closed list (expanded)":"Visited / expanded";
   chips($("c1"),s.fr.map(f=>f.t),"f");chips($("c2"),s.vis,"v");
  }
- $("cnt").textContent=`${idx+1} / ${steps.length}`;$("scrub").max=steps.length-1;$("scrub").value=idx;
+ drawTree(s);$("cnt").textContent=`${idx+1} / ${steps.length}`;$("scrub").max=steps.length-1;$("scrub").value=idx;
  $("play").textContent=timer?"Pause":"Play";
 }
 const stop=()=>{clearInterval(timer);timer=null};
@@ -273,7 +305,7 @@ function play(){
  const ms=(11-$("spd").value)*(bm?20:80);
  timer=setInterval(tick,ms);render();
 }
-function restart(){stop();build();renderCode();render()}
+function restart(){stop();build();layout();renderCode();render()}
 
 $("algs").innerHTML=ALGS.map(a=>`<button data-a="${a}" class="${a===alg?"on":""}">${a}</button>`).join("");
 $("algs").onclick=e=>{const a=e.target.dataset.a;if(!a)return;alg=a;[...$("algs").children].forEach(b=>b.classList.toggle("on",b.dataset.a===a));restart()};
