@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pathfinding Lab</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#eef1f6;--card:#fff;--ink:#17212f;--mut:#5b6879;--line:#c5cfdc;--fr:#f0a62e;--vis:#6f93f2;--cur:#d6336c;--ok:#1f9d6b}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1520;--card:#17212f;--ink:#e6ecf5;--mut:#93a1b5;--line:#33435a;--fr:#f0b24a;--vis:#6f93f2;--cur:#f06292;--ok:#3ecf94}}
+:root[data-theme="dark"]{--bg:#0e1520;--card:#17212f;--ink:#e6ecf5;--mut:#93a1b5;--line:#33435a;--fr:#f0b24a;--vis:#6f93f2;--cur:#f06292;--ok:#3ecf94}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+h1{font-size:1.5rem;margin:0 0 4px;letter-spacing:-.01em}
+p.sub{margin:0 0 14px;color:var(--mut)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
+.seg button{border:0;background:none;color:var(--ink);padding:8px 12px;font:inherit;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--ink);color:var(--bg)}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:8px 12px;font:inherit;cursor:pointer}
+.btn.pri{background:var(--cur);border-color:var(--cur);color:#fff}
+button:focus-visible,input:focus-visible{outline:2px solid var(--vis);outline-offset:2px}
+.grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+svg{width:100%;height:auto;display:block;touch-action:manipulation}
+.node{cursor:pointer;stroke:var(--ink);stroke-width:2;transition:fill .2s}
+.lbl{font-weight:700;font-size:15px;text-anchor:middle;dominant-baseline:central;pointer-events:none;fill:var(--ink)}
+.small{font-size:11px;fill:var(--mut);text-anchor:middle}
+.tag{font-size:11px;font-weight:700;text-anchor:middle}
+.note{min-height:3em;margin:0 0 10px;font-weight:600}
+.sec{margin:0 0 10px}
+.sec h3{margin:0 0 4px;font-size:.85rem;color:var(--mut);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:4px;min-height:26px}
+.chip{border:1px solid var(--line);border-radius:6px;padding:2px 7px;font-size:13px;background:var(--bg)}
+.chip.f{border-color:var(--fr)}.chip.v{border-color:var(--vis)}.chip.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,transparent)}
+.chip.best{border-color:var(--ok);font-weight:700}
+.list{max-height:200px;overflow:auto}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mut);margin-top:8px}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:4px;border:2px solid var(--ink);vertical-align:-1px}
+input[type=range]{width:140px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--mut)}
+@media(prefers-reduced-motion:reduce){.node{transition:none}}
+.col{display:flex;flex-direction:column;gap:12px;min-width:0}
+h2.t{font-size:.95rem;margin:0 0 8px}
+.code{font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;border:1px solid var(--line);border-radius:8px;overflow:auto;background:var(--bg);margin-bottom:10px;padding:4px 0}
+.ln{display:flex;gap:8px;padding:1px 8px;white-space:pre;border-left:4px solid transparent}
+.ln i{font-style:normal;color:var(--mut);width:1.4em;text-align:right;flex:none}
+.ln.on{background:color-mix(in srgb,var(--fr) 30%,transparent);border-left-color:var(--cur);font-weight:700}
+</style></head><body><div class="wrap">
+<h1>Pathfinding Lab</h1>
+<p class="sub">Pick an algorithm, choose a start and goal by clicking nodes, then press Play or step through it.</p>
+<div class="bar">
+ <div class="seg" id="algs"></div>
+ <div class="seg" id="modes"><button data-m="start" class="on">Set start</button><button data-m="goal">Set goal</button></div>
+</div>
+<div class="grid">
+ <div class="card">
+  <svg id="svg" viewBox="0 0 620 340" role="img" aria-label="Graph"></svg>
+  <div class="legend">
+   <span><i class="dot" style="background:var(--cur)"></i>current</span>
+   <span><i class="dot" style="background:var(--fr)"></i>frontier</span>
+   <span><i class="dot" style="background:var(--vis)"></i>visited</span>
+   <span><i class="dot" style="background:var(--ok)"></i>path</span>
+   <span><i class="dot" style="background:var(--card);border-style:dashed;border-color:var(--cur)"></i>considering</span>
+  </div>
+  <div class="row">
+   <button class="btn pri" id="play">Play</button>
+   <button class="btn" id="back">Back</button>
+   <button class="btn" id="fwd">Step</button>
+   <button class="btn" id="rst">Reset</button>
+   <label>Speed <input type="range" id="spd" min="1" max="10" value="5"></label>
+  </div>
+  <div class="row"><label style="flex:1">Step <input type="range" id="scrub" min="0" max="0" value="0" style="width:100%"></label><span id="cnt"></span></div>
+ </div>
+ <div class="col"><div class="card">
+  <h2 class="t">Algorithm steps</h2><div class="code" id="code"></div>
+  <p class="note" id="note"></p></div>
+ <div class="card">
+  <div class="sec"><h3 id="h1">Frontier</h3><div class="chips" id="c1"></div></div>
+  <div class="sec"><h3 id="h2">Visited</h3><div class="chips" id="c2"></div></div>
+  <div class="sec"><h3 id="h3">Path</h3><div class="chips" id="c3"></div></div>
+  <div class="sec" id="allsec" hidden><h3 id="h4">All paths</h3><div class="list chips" id="c4" style="flex-direction:column;flex-wrap:nowrap"></div></div>
+ </div></div>
+</div>
+</div>
+<script>
+const P={A:[50,170],B:[150,70],C:[150,270],D:[270,35],E:[270,165],F:[270,305],G:[390,85],H:[400,245],I:[520,150],J:[560,290]};
+const EDG=[["A","B"],["A","C"],["B","D"],["B","E"],["C","E"],["C","F"],["D","G"],["E","G"],["E","H"],["E","F"],["F","H"],["G","I"],["H","I"],["H","J"],["I","J"]];
+const dist=(a,b)=>Math.hypot(P[a][0]-P[b][0],P[a][1]-P[b][1]);
+const adj={};Object.keys(P).forEach(k=>adj[k]=[]);
+EDG.forEach(([a,b])=>{const w=Math.ceil(dist(a,b)/10);adj[a].push([b,w]);adj[b].push([a,w])});
+Object.values(adj).forEach(l=>l.sort((x,y)=>x[0].localeCompare(y[0])));
+const W=(a,b)=>adj[a].find(x=>x[0]===b)[1];
+const ek=(a,b)=>[a,b].sort().join("");
+const ALGS=["BFS","DFS","A*","Hill Climbing","British Museum"];
+let S="A",G="I",alg="BFS",mode="start",steps=[],found=[],idx=0,timer=null;
+const h=n=>dist(n,G)/10;
+const cost=p=>p.slice(1).reduce((c,n,i)=>c+W(p[i],n),0);
+const pp=(par,n)=>{const r=[];for(;n;n=par[n])r.unshift(n);return r};
+const pairs=p=>p.slice(1).map((n,i)=>ek(p[i],n));
+const treeOf=par=>Object.keys(par).filter(k=>par[k]).map(k=>ek(par[k],k));
+const add=o=>steps.push(Object.assign({fr:[],vis:[],path:[],tree:[],nf:0,note:"",line:-1,cons:null},o));
+const fl=l=>l.map(n=>({n,t:n}));
+
+function build(){
+ steps=[];found=[];idx=0;
+ if(alg==="BFS"||alg==="DFS"){
+  const dfs=alg==="DFS",Q=dfs?"stack":"queue";
+  let fr=[[S,null]],vis=[],par={},cur=null,pth=[];
+  const sn=(line,note,x={})=>add(Object.assign({line,cur,fr:fl(fr.map(f=>f[0])),vis:[...vis],path:pth,tree:treeOf(par),note},x));
+  sn(0,`Put ${S} in the ${Q}.`);
+  while(fr.length){
+   cur=null;sn(1,`The ${Q} is not empty (${fr.length} item${fr.length>1?"s":""}).`);
+   const [n,p]=dfs?fr.pop():fr.shift();cur=n;pth=[];
+   sn(2,`${dfs?"Pop the top":"Dequeue the front"}: ${n}${p?` (reached from ${p})`:""}.`);
+   if(vis.includes(n)){sn(3,`${n} was already visited, so skip it.`);continue}
+   vis.push(n);par[n]=p;pth=pp(par,n);
+   if(n===G){sn(5,`${n} is the goal! Path ${pth.join("-")}, cost ${cost(pth)}.`,{done:1});return}
+   sn(4,`Mark ${n} visited. It is not the goal.`);
+   const all=adj[n].map(x=>x[0]);
+   sn(6,`Neighbours of ${n}: ${all.join(", ")||"none"}.`);
+   for(const m of dfs?[...all].reverse():all){
+    if(vis.includes(m))sn(7,`${m} is already visited: ignore it.`,{cons:m});
+    else if(!dfs&&fr.some(f=>f[0]===m))sn(7,`${m} is already in the queue: ignore it.`,{cons:m});
+    else{fr.push([m,n]);sn(7,`${m} is new: parent[${m}] = ${n}, ${dfs?"push":"enqueue"} ${m}.`,{cons:m})}
+   }
+  }
+  cur=null;sn(8,"The "+Q+" is empty: no path exists.",{done:1,fail:1});
+ }else if(alg==="A*"){
+  let open={[S]:{g:0,p:null}},closed=[],par={},cur=null,pth=[];
+  const f=k=>open[k].g+h(k);
+  const frs=()=>Object.keys(open).sort((a,b)=>f(a)-f(b)||h(a)-h(b)||a.localeCompare(b)).map(k=>({n:k,t:`${k} g=${open[k].g} h=${h(k).toFixed(1)} f=${f(k).toFixed(1)}`}));
+  const sn=(line,note,x={})=>add(Object.assign({line,cur,fr:frs(),vis:[...closed],path:pth,tree:treeOf(par),note},x));
+  sn(0,`Open list = {${S}}, g(${S}) = 0.`);
+  while(Object.keys(open).length){
+   cur=null;sn(1,`Open list has ${Object.keys(open).length} node(s).`);
+   const n=frs()[0].n,o=open[n];cur=n;pth=[];
+   sn(2,`Pick ${n}: lowest f = g + h = ${o.g} + ${h(n).toFixed(1)} = ${(o.g+h(n)).toFixed(1)}.`);
+   delete open[n];closed.push(n);par[n]=o.p;pth=pp(par,n);
+   if(n===G){sn(4,`${n} is the goal! Optimal cost = ${o.g}.`,{done:1});return}
+   sn(3,`Move ${n} to the closed list. It is not the goal.`);
+   sn(5,`Neighbours of ${n}: ${adj[n].map(x=>x[0]).join(", ")}.`);
+   for(const [m,w] of adj[n]){
+    if(closed.includes(m)){sn(6,`${m} is closed: ignore it.`,{cons:m});continue}
+    const g2=o.g+w;
+    sn(7,`g' = g(${n}) + cost(${n},${m}) = ${o.g} + ${w} = ${g2}.`,{cons:m});
+    if(!open[m]||g2<open[m].g){
+     const old=open[m];open[m]={g:g2,p:n};
+     sn(9,old?`${g2} < ${old.g}: update g(${m}) and parent = ${n}.`:`${m} is new: add to open, parent = ${n}, f = ${g2} + ${h(m).toFixed(1)} = ${(g2+h(m)).toFixed(1)}.`,{cons:m});
+    }else sn(8,`${g2} is not better than g(${m}) = ${open[m].g}: keep the old route.`,{cons:m});
+   }
+  }
+  cur=null;sn(10,"The open list is empty: no path exists.",{done:1,fail:1});
+ }else if(alg==="Hill Climbing"){
+  let cur=S,vis=[S],path=[S],fr=[];
+  const sn=(line,note,x={})=>add(Object.assign({line,cur,fr,vis:[...vis],path:[...path],tree:pairs(path),note},x));
+  sn(0,`Start at ${S} (h = ${h(S).toFixed(1)}).`);
+  while(true){
+   fr=[];
+   if(cur===G){sn(2,`${cur} is the goal! Path cost ${cost(path)}.`,{done:1});return}
+   const c=adj[cur].map(x=>x[0]).filter(x=>!vis.includes(x)).sort((a,b)=>h(a)-h(b));
+   fr=c.map(n=>({n,t:`${n} h=${h(n).toFixed(1)}`}));
+   sn(3,`Unvisited neighbours of ${cur}: ${c.join(", ")||"none"}.`);
+   if(!c.length||h(c[0])>=h(cur)){sn(5,c.length?`Best neighbour ${c[0]} has h = ${h(c[0]).toFixed(1)}, not below h(${cur}) = ${h(cur).toFixed(1)}. Stuck in a local optimum.`:`No unvisited neighbours. Stuck.`,{cons:c[0],done:1,fail:1});return}
+   sn(4,`Lowest h is ${c[0]} (${h(c[0]).toFixed(1)}), better than h(${cur}) = ${h(cur).toFixed(1)}.`,{cons:c[0]});
+   fr=[];cur=c[0];vis.push(cur);path.push(cur);
+   sn(6,`Move to ${cur} and mark it visited.`);
+  }
+ }else{
+  let cap=false;
+  const rec=(n,path)=>{
+   if(steps.length>6000){cap=true;return}
+   if(n===G){found.push([...path]);add({line:2,cur:n,path:[...path],nf:found.length,hit:1,note:`Goal! Record path #${found.length}: ${path.join("-")} (cost ${cost(path)}).`});return}
+   add({line:1,cur:n,path:[...path],nf:found.length,note:`At ${n} with path ${path.join("-")}.`});
+   for(const [m] of adj[n])if(!path.includes(m)){
+    add({line:3,cur:n,cons:m,path:[...path],nf:found.length,note:`${m} is not on the path yet: explore ${path.join("-")}-${m}.`});
+    path.push(m);rec(m,path);path.pop();
+   }
+  };
+  rec(S,[S]);
+  const best=[...found].sort((a,b)=>cost(a)-cost(b))[0];
+  add({line:5,cur:G,path:best||[],nf:found.length,done:1,note:`${found.length} simple path${found.length===1?"":"s"} found${cap?" (search capped)":""}. Cheapest: ${best?best.join("-")+" (cost "+cost(best)+")":"none"}.`});
+ }
+}
+const PS=(()=>{const q=(a,b)=>[["queue ← [start]; visited ← {}",0],["while queue is not empty:",0],["n ← dequeue front",1],["if n already visited: continue",1],["mark n visited",1],["if n = goal: return path",1],["for each neighbour m of n:",1],["if m is new: parent[m] ← n; enqueue m",2],["return failure",0]];
+ const d=q().map(x=>[x[0].replace("queue","stack").replace("dequeue front","pop top").replace("enqueue","push").replace("is new","is unvisited"),x[1]]);
+ return{BFS:q(),DFS:d,"A*":[["open ← {start}; g[start] ← 0",0],["while open is not empty:",0],["n ← node in open with lowest f = g + h",1],["move n from open to closed",1],["if n = goal: return path",1],["for each neighbour m of n:",1],["if m is closed: continue",2],["g' ← g[n] + cost(n, m)",2],["if m not in open or g' < g[m]:",2],["g[m] ← g'; parent[m] ← n; open ← m",3],["return failure",0]],
+ "Hill Climbing":[["current ← start",0],["repeat:",0],["if current = goal: return path",1],["candidates ← unvisited neighbours",1],["best ← candidate with lowest h",1],["if none or h(best) ≥ h(current): stop",1],["current ← best; mark visited",1]],
+ "British Museum":[["explore(path):",0],["n ← last node of path",1],["if n = goal: record path; return",1],["for each neighbour m not in path:",1],["explore(path + m)  # then backtrack",2],["explore([start]); pick cheapest recorded",0]]}})();
+function renderCode(){$("code").innerHTML=PS[alg].map((l,i)=>`<div class="ln"><i>${i+1}</i>${"    ".repeat(l[1])}${l[0].replace(/</g,"&lt;")}</div>`).join("")}
+
+// ---- drawing
+const svg=document.getElementById("svg"),NS="http://www.w3.org/2000/svg";
+const mk=(t,a,p=svg)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+const lines={},nodes={},hs={},tags={};
+EDG.forEach(([a,b])=>{
+ lines[ek(a,b)]=mk("line",{x1:P[a][0],y1:P[a][1],x2:P[b][0],y2:P[b][1],"stroke-linecap":"round"});
+});
+EDG.forEach(([a,b])=>{
+ const t=mk("text",{x:(P[a][0]+P[b][0])/2,y:(P[a][1]+P[b][1])/2-5,class:"small"});t.textContent=W(a,b);
+});
+Object.keys(P).forEach(n=>{
+ const c=mk("circle",{cx:P[n][0],cy:P[n][1],r:19,class:"node",tabindex:0,role:"button","aria-label":"Node "+n});
+ c.onclick=()=>pick(n);c.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick(n)}};
+ nodes[n]=c;
+ const l=mk("text",{x:P[n][0],y:P[n][1],class:"lbl"});l.textContent=n;
+ hs[n]=mk("text",{x:P[n][0],y:P[n][1]+34,class:"small"});
+ tags[n]=mk("text",{x:P[n][0],y:P[n][1]-27,class:"tag"});
+});
+
+function pick(n){
+ if(mode==="start"){if(n===G)return;S=n}else{if(n===S)return;G=n}
+ restart();
+}
+const $=id=>document.getElementById(id);
+const chips=(el,items,cls)=>{el.innerHTML=items.length?items.map(i=>`<span class="chip ${cls}">${i}</span>`).join(""):'<span class="chip">empty</span>'};
+
+function render(){
+ const s=steps[idx],bm=alg==="British Museum",used={};
+ if(bm)found.slice(0,s.nf).forEach(p=>pairs(p).forEach(k=>used[k]=(used[k]||0)+1));
+ const pe=pairs(s.path);
+ for(const k in lines){
+  const L=lines[k];let c="var(--line)",w=2,o=1;
+  if(used[k]){c="var(--ok)";w=3+Math.min(used[k],6);o=Math.min(.25+used[k]*.12,.9)}
+  if(s.tree.includes(k)){c="var(--vis)";w=4}
+  if(pe.includes(k)){c=bm&&!s.done&&!s.hit?"var(--fr)":"var(--ok)";w=6;o=1}
+  const cs=s.cons&&s.cur&&k===ek(s.cur,s.cons);if(cs){c="var(--cur)";w=4;o=1}
+  L.setAttribute("stroke",c);L.setAttribute("stroke-width",w);L.setAttribute("opacity",o);L.setAttribute("stroke-dasharray",cs?"7 5":"");
+ }
+ const fn=s.fr.map(f=>f.n);
+ for(const n in nodes){
+  let f="var(--card)";
+  if(bm){if(s.path.includes(n))f=s.done||s.hit?"var(--ok)":"var(--fr)"}
+  else{if(s.vis.includes(n))f="var(--vis)";if(fn.includes(n))f="var(--fr)";if(s.path.includes(n)&&s.done&&!s.fail)f="var(--ok)"}
+  if(n===s.cur)f="var(--cur)";
+  nodes[n].setAttribute("fill",f);const cn=n===s.cons;nodes[n].style.stroke=cn?"var(--cur)":"";nodes[n].style.strokeWidth=cn?"5":"";nodes[n].style.strokeDasharray=cn?"4 3":"";
+  hs[n].textContent=(alg==="A*"||alg==="Hill Climbing")?"h="+h(n).toFixed(1):"";
+  tags[n].textContent=n===S?"start":n===G?"goal":"";
+  tags[n].setAttribute("fill",n===S?"var(--vis)":"var(--cur)");
+ }
+ $("note").textContent=s.note;document.querySelectorAll("#code .ln").forEach((e,i)=>e.classList.toggle("on",i===s.line));
+ const pth=s.path;
+ $("c3").innerHTML=pth.length?`<span class="chip ok">${pth.join(" → ")}</span><span class="chip">cost ${cost(pth)}</span>`:'<span class="chip">none yet</span>';
+ if(bm){
+  $("h1").textContent="Partial path being explored";$("h2").textContent="Paths found";$("h3").textContent="Current path";
+  chips($("c1"),s.path.length?[s.path.join(" → ")]:[],"f");
+  $("c2").innerHTML=`<span class="chip v">${s.nf} of all possible paths</span>`;
+  $("allsec").hidden=false;$("h4").textContent="Every path found so far (cheapest in bold green)";
+  const all=found.slice(0,s.nf),m=Math.min(...all.map(cost));
+  $("c4").innerHTML=all.map(p=>`<span class="chip ${cost(p)===m?"best":""}">${p.join(" → ")} (cost ${cost(p)})</span>`).join("")||'<span class="chip">none yet</span>';
+ }else{
+  $("allsec").hidden=true;$("h3").textContent="Path so far";
+  $("h1").textContent=alg==="BFS"?"Frontier: queue (front to back)":alg==="DFS"?"Frontier: stack (bottom to top)":alg==="A*"?"Open list (sorted by f = g + h)":"Candidate neighbours (sorted by h)";
+  $("h2").textContent=alg==="A*"?"Closed list (expanded)":"Visited / expanded";
+  chips($("c1"),s.fr.map(f=>f.t),"f");chips($("c2"),s.vis,"v");
+ }
+ $("cnt").textContent=`${idx+1} / ${steps.length}`;$("scrub").max=steps.length-1;$("scrub").value=idx;
+ $("play").textContent=timer?"Pause":"Play";
+}
+const stop=()=>{clearInterval(timer);timer=null};
+function tick(){if(idx<steps.length-1){idx++;render()}else{stop();render()}}
+function play(){
+ if(timer){stop();render();return}
+ if(idx>=steps.length-1)idx=0;
+ const bm=alg==="British Museum";
+ const ms=(11-$("spd").value)*(bm?20:80);
+ timer=setInterval(tick,ms);render();
+}
+function restart(){stop();build();renderCode();render()}
+
+$("algs").innerHTML=ALGS.map(a=>`<button data-a="${a}" class="${a===alg?"on":""}">${a}</button>`).join("");
+$("algs").onclick=e=>{const a=e.target.dataset.a;if(!a)return;alg=a;[...$("algs").children].forEach(b=>b.classList.toggle("on",b.dataset.a===a));restart()};
+$("modes").onclick=e=>{const m=e.target.dataset.m;if(!m)return;mode=m;[...$("modes").children].forEach(b=>b.classList.toggle("on",b.dataset.m===m))};
+$("play").onclick=play;
+$("fwd").onclick=()=>{stop();if(idx<steps.length-1)idx++;render()};
+$("back").onclick=()=>{stop();if(idx>0)idx--;render()};
+$("rst").onclick=()=>{stop();idx=0;render()};
+$("scrub").oninput=e=>{stop();idx=+e.target.value;render()};
+$("spd").oninput=()=>{if(timer){stop();play()}};
+restart();
+</script></body></html>
