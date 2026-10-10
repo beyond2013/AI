@@ -37,7 +37,7 @@ svg{width:100%;height:auto;display:block;touch-action:manipulation}
 .chip.f{border-color:var(--fr)}.chip.v{border-color:var(--vis)}.chip.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,transparent)}
 .chip.best{border-color:var(--ok);font-weight:700}
 .list{max-height:200px;overflow:auto}
-.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mut);margin-top:8px}
+.legend{display:grid;gap:5px;font-size:12.5px;color:var(--mut);margin-top:10px}.legend b{color:var(--ink)}
 .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:4px;border:2px solid var(--ink);vertical-align:-1px}
 input[type=range]{width:140px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--mut)}
@@ -58,13 +58,7 @@ h2.t{font-size:.95rem;margin:0 0 8px}
 <div class="grid">
  <div class="card">
   <svg id="svg" viewBox="0 0 620 340" role="img" aria-label="Graph"></svg>
-  <div class="legend">
-   <span><i class="dot" style="background:var(--cur)"></i>current</span>
-   <span><i class="dot" style="background:var(--fr)"></i>frontier</span>
-   <span><i class="dot" style="background:var(--vis)"></i>visited</span>
-   <span><i class="dot" style="background:var(--ok)"></i>path</span>
-   <span><i class="dot" style="background:var(--card);border-style:dashed;border-color:var(--cur)"></i>considering</span>
-  </div>
+  <div class="legend" id="legend"></div>
   <div class="row">
    <button class="btn pri" id="play">Play</button>
    <button class="btn" id="back">Back</button>
@@ -189,7 +183,18 @@ const PS=(()=>{const q=(a,b)=>[["queue ← [start]; visited ← {}",0],["while q
  return{BFS:q(),DFS:d,"A*":[["open ← {start}; g[start] ← 0",0],["while open is not empty:",0],["n ← node in open with lowest f = g + h",1],["move n from open to closed",1],["if n = goal: return path",1],["for each neighbour m of n:",1],["if m is closed: continue",2],["g' ← g[n] + cost(n, m)",2],["if m not in open or g' < g[m]:",2],["g[m] ← g'; parent[m] ← n; open ← m",3],["return failure",0]],
  "Hill Climbing":[["current ← start",0],["repeat:",0],["if current = goal: return path",1],["candidates ← unvisited neighbours",1],["best ← candidate with lowest h",1],["if none or h(best) ≥ h(current): stop",1],["current ← best; mark visited",1]],
  "British Museum":[["explore(path):",0],["n ← last node of path",1],["if n = goal: record path; return",1],["for each neighbour m not in path:",1],["explore(path + m)  # then backtrack",2],["explore([start]); pick cheapest recorded",0]]}})();
-function renderCode(){$("code").innerHTML=PS[alg].map((l,i)=>`<div class="ln"><i>${i+1}</i>${"    ".repeat(l[1])}${l[0].replace(/</g,"&lt;")}</div>`).join("")}
+const DEF={
+ BFS:[["Current","The node just taken from the front of the queue and now being expanded."],["Frontier (queue)","Discovered nodes waiting their turn; the oldest one is expanded next."],["Visited","Nodes already expanded; they are never expanded again."],["Path","The route from the start to the current node via parent links; at the goal it has the fewest edges."]],
+ DFS:[["Current","The node just popped from the top of the stack and now being expanded."],["Frontier (stack)","Discovered nodes waiting on the stack; the newest one is expanded next."],["Visited","Nodes already expanded; they are never expanded again."],["Path","The route from the start to the current node via parent links; at the goal it is valid but not necessarily cheapest."]],
+ "A*":[["Current","The open-list node with the lowest f = g + h, just picked for expansion."],["Frontier (open list)","Discovered but unexpanded nodes, each shown with its g, h and f."],["Visited (closed list)","Expanded nodes whose cheapest cost from the start is now final."],["Path","The cheapest known route from the start to the current node; its cost is g."]],
+ "Hill Climbing":[["Current","The node we are standing on right now."],["Frontier (candidates)","Unvisited neighbours of the current node, ranked by h; only the best one is taken."],["Visited","Nodes already stepped on; hill climbing never goes back to them."],["Path","The single route walked so far; there is no backtracking."]],
+ "British Museum":[["Current","The last node of the partial path being extended."],["Frontier (partial path)","The route being built right now, before it reaches the goal or dead-ends."],["Visited (paths found)","Complete start-to-goal routes recorded so far; edges used by more routes are drawn thicker."],["Path","The route being tried; at the end, the cheapest recorded route."]]};
+const DOT={Current:"var(--cur)",Frontier:"var(--fr)",Visited:"var(--vis)",Path:"var(--ok)"};
+function renderLegend(){
+ const row=(c,b,x,st="")=>`<div><i class="dot" style="background:${c};${st}"></i><b>${b}:</b> ${x}</div>`;
+ $("legend").innerHTML=DEF[alg].map(([b,x])=>row(DOT[b.split(" ")[0]],b,x)).join("")+row("var(--card)","Considering","The neighbour being checked right now (dashed outline and edge).","border-style:dashed;border-color:var(--cur)");
+}
+function renderCode(){renderLegend();$("code").innerHTML=PS[alg].map((l,i)=>`<div class="ln"><i>${i+1}</i>${"    ".repeat(l[1])}${l[0].replace(/</g,"&lt;")}</div>`).join("")}
 
 // ---- drawing
 const svg=document.getElementById("svg"),NS="http://www.w3.org/2000/svg";
