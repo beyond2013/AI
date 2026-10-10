@@ -25,7 +25,7 @@
 *   **Core Concepts:** Game theory fundamentals in AI. Deterministic, zero-sum games of perfect information. Game tree construction with the Minimax algorithm and optimization using Alpha-Beta Pruning.
 *   **Practical Lab:** Code a complete, turn-based Tic-Tac-Toe or Connect-Four engine in Python. Implement a Minimax agent with Alpha-Beta Pruning from scratch, making the bot completely unbeatable for a human player.
 
-### Week 6: Landmark Case Studies in AI
+### [Week 6: Landmark Case Studies in AI](./markdown/Week6.md)
 *   **Content:** Case Studies: General Problem Solver, Eliza, Student, Macsyma.
 *   **Core Concepts:** Historical milestones of symbolic AI. General problem-solving methodologies, early natural language pattern matching, algebra problem solving, and symbolic mathematics manipulation.
 *   **Practical Lab:** Recreate a modern Python adaptation of the ELIZA chatbot. Use regular expressions (`re` library) and string parsing rules to map user statements to simulated psychotherapist responses.
