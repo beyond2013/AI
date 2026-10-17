@@ -18,7 +18,7 @@
 ### [Week 4: Local Search Optimization](./markdown/Week5.md)
 *   **Content:** Problem Solving by Searching (Local searching).
 *   **Core Concepts:** Optimization problems where the goal state matters but the path to it does not. Hill Climbing, the challenge of local maxima, plateaus, and random-restart variants.
-*   **Practical Lab:** Implement a Hill Climbing algorithm in Python to solve the N-Queens problem or a 10-city Traveling Salesperson Problem (TSP). Plot the evaluation score over iterations to visualize the optimization process.
+*   [**Practical Lab:**](./markdown/Lab4.md) Implement a Hill Climbing algorithm in Python to solve the N-Queens problem. Plot the evaluation score over iterations to visualize the optimization process.
 
 ### Week 5: Adversarial Search & Game Engines
 *   **Content:** Min-max algorithm, Alpha beta pruning, Game-playing.
