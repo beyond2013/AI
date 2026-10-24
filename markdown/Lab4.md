@@ -91,10 +91,10 @@ Row:     1  3  0  2
 The corresponding board is:
 
 ```text
-. Q . .
-. . . Q
-Q . . .
 . . Q .
+Q . . .
+. . . Q
+. Q . .
 ```
 
 This representation automatically guarantees that each column contains exactly one queen.
