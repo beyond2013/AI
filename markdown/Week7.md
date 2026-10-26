@@ -190,9 +190,9 @@ At a terminal node, the utility is already known. At a non-terminal node, the al
 
 At a MAX node, it chooses the maximum child value:
 
-```math
+$$
 V(s)=\max_{a\in A(s)} V(\operatorname{Result}(s,a))
-```
+$$
 
 At a MIN node, it chooses the minimum child value:
 
