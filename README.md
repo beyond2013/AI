@@ -20,7 +20,7 @@
 *   **Core Concepts:** Optimization problems where the goal state matters but the path to it does not. Hill Climbing, the challenge of local maxima, plateaus, and random-restart variants.
 *   [**Practical Lab:**](./markdown/Lab4.md) Implement a Hill Climbing algorithm in Python to solve the N-Queens problem. Plot the evaluation score over iterations to visualize the optimization process.
 
-### Week 5: Adversarial Search & Game Engines
+### [Week 5: Adversarial Search & Game Engines](./markdown/Week7.md)
 *   **Content:** Min-max algorithm, Alpha beta pruning, Game-playing.
 *   **Core Concepts:** Game theory fundamentals in AI. Deterministic, zero-sum games of perfect information. Game tree construction with the Minimax algorithm and optimization using Alpha-Beta Pruning.
 *   **Practical Lab:** Code a complete, turn-based Tic-Tac-Toe or Connect-Four engine in Python. Implement a Minimax agent with Alpha-Beta Pruning from scratch, making the bot completely unbeatable for a human player.
