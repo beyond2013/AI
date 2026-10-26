@@ -1,225 +1,148 @@
 # Week 5: Adversarial Search and Game Engines
 
-**Course:** Artificial Intelligence\
-**Level:** Undergraduate BS Computer Science / BS Information Technology
-
 ## Learning Objectives
 
 By the end of this lecture, you should be able to:
 
-1.  Explain adversarial search and its role in game-playing Artificial
-    Intelligence.
-2.  Describe deterministic, zero-sum games with perfect information.
-3.  Construct and interpret a game tree.
-4.  Explain how the Minimax algorithm selects a move.
-5.  Apply Alpha-Beta Pruning to avoid unnecessary exploration.
-6.  Implement both algorithms in Python 3.
-7.  Compare their efficiency and explain how they are used in practical
-    game engines.
+1. Explain adversarial search and its role in Artificial Intelligence.
+2. Describe deterministic, zero-sum games with perfect information.
+3. Construct and interpret a game tree.
+4. Explain how the Minimax algorithm selects a move.
+5. Explain Alpha-Beta Pruning and its pruning condition.
+6. Compare Minimax and Alpha-Beta Pruning.
+7. Describe how these algorithms are used in practical game engines.
 
-## 1. Introduction: How Does an AI Play a Game Intelligently?
+## 1. Introduction to Adversarial Search
 
-Imagine that you are playing Tic-Tac-Toe against a computer. You are X,
-and the computer is O.
+Imagine playing Tic-Tac-Toe against a computer. You are X, and the computer is O.
 
-The computer has three possible moves. One move may look attractive
-because it places O in an empty corner. However, if that move allows you
-to complete a row of Xs on your next turn, it is a poor decision.
-
-A sensible computer must do more than examine its immediate move. It
-must consider what you might do in response, how it could respond to
-your move, and whether the resulting position is favorable.
+The computer must choose a move. A move that looks good immediately may allow you to win on your next turn. Therefore, the computer should consider not only its own move but also your possible response.
 
 This is the central idea behind **adversarial search**.
 
-Adversarial search is a search technique used when an intelligent agent
-must make decisions in an environment where another agent is actively
-trying to achieve an opposing objective.
+Adversarial search is a decision-making technique used when an intelligent agent operates in an environment where another agent actively tries to achieve an opposing objective.
 
 Examples include:
 
--   Chess, where each player tries to checkmate the opponent.
--   Tic-Tac-Toe, where one player tries to form a line while the other
-    tries to prevent it.
--   Checkers, where players try to capture pieces and achieve a winning
-    position.
--   Strategic board games in which each player must anticipate the
-    other's decisions.
+- Chess, where each player tries to checkmate the opponent.
+- Tic-Tac-Toe, where each player tries to complete a line or prevent the opponent from doing so.
+- Checkers, where players attempt to capture pieces and achieve a winning position.
+- Other competitive board games in which each player anticipates the opponent's actions.
 
-In an ordinary search problem, such as finding a route from Quetta to
-Karachi, the goal is to find a path to a destination. The road network
-does not deliberately change its behavior to prevent you from reaching
-Karachi.
+Consider the difference between route finding and game playing. When searching for a route from Quetta to Karachi, the roads do not deliberately change their behavior to prevent you from reaching your destination. In a competitive game, however, the opponent actively responds to your decisions.
 
-In a competitive game, however, the opponent actively responds to your
-actions. A move that appears good initially may become bad after the
-opponent's response.
-
-Therefore, a game-playing AI must consider both its own decisions and
-the possible decisions of its opponent.
+A good game-playing AI must therefore consider the consequences of its actions and the possible responses of its opponent.
 
 ## 2. Fundamentals of Game Theory in AI
 
 ### 2.1 What Is Game Theory?
 
-Game theory is the mathematical study of decision-making in situations
-where the outcome depends on the actions of multiple decision-makers.
+Game theory is the mathematical study of decision-making in situations where the outcome depends on the actions of multiple decision-makers.
 
-In Artificial Intelligence, game theory helps us reason about situations
-in which one agent's actions affect another agent's results.
+In AI, game theory helps us understand competitive situations in which one agent's decisions affect another agent's results.
 
-Consider a simple game:
+A simple game may follow this sequence:
 
-1.  Player A chooses a move.
-2.  Player B observes that move and chooses a response.
-3.  The game eventually ends.
-4.  The final outcome determines who wins, loses, or draws.
+1. Player A chooses a move.
+2. Player B observes the move and responds.
+3. The players continue taking turns.
+4. The game ends with a win, loss, draw, or another defined outcome.
 
 Each player must consider how the other player might act.
 
-Game theory provides a way to reason about these interactions.
-Adversarial search provides computational techniques for exploring
-possible sequences of moves and selecting a suitable action.
+Game theory provides a framework for understanding strategic interactions. Adversarial search provides algorithms for examining possible sequences of moves and selecting an appropriate action.
 
-### 2.2 Basic Terminology
+### 2.2 Basic Game Terminology
 
-  -----------------------------------------------------------------------
-  Term                    Meaning                 Example in Tic-Tac-Toe
-  ----------------------- ----------------------- -----------------------
-  Player                  An agent that makes     X or O
-                          decisions               
+| Term | Meaning | Tic-Tac-Toe example |
+|---|---|---|
+| Player | An agent that makes decisions | X or O |
+| State | The current situation of the game | The current board |
+| Action | A legal move | Placing X in an empty cell |
+| Initial state | The starting position | An empty board |
+| Successor state | A state reached after an action | The board after a move |
+| Terminal state | A state in which the game has ended | A win, loss, or draw |
+| Utility | A numerical value representing an outcome | +1, 0, or -1 |
+| Game tree | A representation of possible game states and moves | All possible moves and responses |
 
-  State                   The current situation   The current arrangement
-                          of the game             of Xs and Os
-
-  Action or move          A legal decision        Placing X in an empty
-                          available to a player   cell
-
-  Initial state           The state in which the  An empty board
-                          game begins             
-
-  Successor state         A state reached after   The board after placing
-                          an action               O
-
-  Terminal state          A state in which the    X wins, O wins, or a
-                          game has ended          draw
-
-  Utility                 A numerical value       +1 for a win, -1 for a
-                          representing the        loss, 0 for a draw
-                          outcome's desirability  
-
-  Game tree               A representation of     All possible moves and
-                          possible sequences of   responses from a
-                          moves                   position
-  -----------------------------------------------------------------------
-
-A **state** describes one particular position in a game. A **game tree**
-represents the possible positions that can arise as players make
-different sequences of moves.
-
-For example, one Tic-Tac-Toe board is a state. The collection of
-possible boards resulting from all legal moves from that board forms a
-tree of possibilities.
+A **state** describes a particular game position. A **game tree** represents the possible positions that can arise from sequences of legal moves.
 
 ### 2.3 Important Properties of Games
 
-**Deterministic versus stochastic games**
+**Deterministic and stochastic games**
 
-A deterministic game has no random event that determines the next state.
-Given the current state and a particular legal action, the resulting
-state is predictable.
+In a deterministic game, the next state is predictable when the current state and action are known.
 
-For example, in Tic-Tac-Toe, placing X in the top-left cell produces a
-predictable board.
+For example, placing X in the top-left cell of a Tic-Tac-Toe board produces a predictable result.
 
-A stochastic game includes randomness, such as dice rolls or random card
-draws. Backgammon is an example because dice affect the available
-outcomes.
+A stochastic game includes random events that influence outcomes, such as dice rolls. Backgammon is an example.
 
-**Zero-sum versus non-zero-sum games**
+**Zero-sum and non-zero-sum games**
 
-A zero-sum game is one in which one player's gain corresponds to an
-equal loss for the other player, according to the game's payoff model.
+In a zero-sum game, one player's gain corresponds to an equal loss for the other player according to the payoff model.
 
-For example, if a simplified competitive game assigns +1 to the winner
-and -1 to the loser, one player's winning outcome is the other's losing
-outcome.
+For example, a game that assigns +1 to the winner and -1 to the loser is zero-sum.
 
-A non-zero-sum game allows outcomes in which both players can benefit or
-both can suffer. Some economic negotiations and cooperative games have
-this property.
+In a non-zero-sum game, both players may benefit, both may lose, or their interests may overlap. Some economic negotiations and cooperative situations have this property.
 
-**Perfect information versus imperfect information**
+**Perfect and imperfect information**
 
-A game has perfect information when all players can observe the complete
-current game state relevant to decision-making.
+A game has perfect information when players can observe the complete current state relevant to decision-making.
 
-Chess and Tic-Tac-Toe are games of perfect information: players can see
-the board and the pieces.
+Chess and Tic-Tac-Toe are games of perfect information because the board and pieces are visible to both players.
 
-Poker is an example of imperfect information because a player cannot see
-the opponents' hidden cards.
+Poker is an example of imperfect information because players cannot see their opponents' hidden cards.
 
-These properties are different dimensions. A game can be deterministic
-but have imperfect information, or include randomness while exposing
-much of its state to all players.
+These are separate properties. A game can be deterministic but have imperfect information, or contain randomness while revealing much of its state to all players.
 
 ### 2.4 Which Games Suit Minimax?
 
-The basic Minimax algorithm is particularly suitable for games with the
-following characteristics:
+The basic Minimax algorithm is particularly suitable for two-player, turn-based, deterministic games of perfect information with opposing objectives.
 
--   Two players take turns making decisions.
--   The players have opposing objectives.
--   One player's benefit corresponds to the other's disadvantage in the
-    utility model.
--   The game is deterministic.
--   The game has perfect information.
--   The legal actions and resulting states can be generated.
+It assumes that:
 
-Tic-Tac-Toe is an ideal introductory example because its rules are
-simple and its game tree is small enough to examine.
+- The legal moves are known.
+- The resulting state after each move can be determined.
+- The players alternate making decisions.
+- The players have opposing objectives represented by a utility function.
+- Both players choose their moves optimally.
 
-Chess also fits the basic deterministic, perfect-information model, but
-its enormous game tree makes exhaustive search impractical. Practical
-chess engines therefore use search limits, evaluation functions, and
-other optimizations.
+Tic-Tac-Toe is an excellent introductory example because its rules are simple and its game tree is small.
+
+Chess also fits the basic deterministic, perfect-information model. However, its enormous game tree makes exhaustive search impractical. Practical chess engines therefore use depth limits, evaluation functions, and search optimizations.
 
 ## 3. Understanding Game Trees
 
-### 3.1 What Is a Game Tree?
+### 3.1 Structure of a Game Tree
 
-A game tree is a tree-shaped representation of the possible moves in a
-game.
+A game tree represents the possible sequences of moves in a game.
 
--   The **root** represents the current game state.
--   A **branch** represents a possible move.
--   A **child node** represents the state reached after a move.
--   The **depth** indicates how many moves have been made from the root.
--   A **leaf node** is a node at which the search stops.
--   A **terminal node** is a state in which the actual game has ended.
+- The **root** represents the current game state.
+- A **branch** represents a possible move.
+- A **child node** represents the state reached after a move.
+- The **depth** indicates how many moves have been made from the root.
+- A **leaf node** is a node at which the search stops.
+- A **terminal node** is a state in which the actual game has ended.
 
-Not every leaf node is necessarily terminal. If the algorithm stops
-searching after a fixed number of moves, a leaf may represent an
-unfinished game position that requires an estimate of its value.
+Not every leaf is a terminal state. A search algorithm may stop at a fixed depth even though the game is unfinished.
 
-### 3.2 A Small Game Tree
+### 3.2 A Numerical Game Tree
 
 Suppose MAX is the AI player and MIN is its opponent. MAX moves first.
 
-``` text
-                         MAX
-                        /   \
-                       A     B
-                      / \   / \
-                    MIN MIN MIN MIN
-                    / \   / \   / \
-                   3   5 2   9 ...
+```text
+                    MAX
+                   /   \
+                  A     B
+                 / \   / \
+               MIN MIN MIN MIN
+               / \   / \   / \
+              3   5 2   9 ...
 ```
 
-A simpler numerical tree for the example is:
+For our main example, use the following tree:
 
-``` text
+```text
                   MAX
                  /   \
                 A     B
@@ -228,135 +151,111 @@ A simpler numerical tree for the example is:
              3    5 2    9
 ```
 
-The leaf values 3, 5, 2, and 9 represent how favorable the resulting
-outcomes are for MAX. Higher values favor MAX; lower values favor MIN.
+The leaf values represent how favorable the outcomes are for MAX. Higher values favor MAX, while lower values favor MIN.
 
-MAX wants to obtain the highest possible value. MIN wants to make the
-outcome as unfavorable as possible for MAX.
+MAX wants the highest value. MIN wants the lowest value from MAX's perspective.
 
-To decide what MAX should do, we work backward from the leaves toward
-the root.
+To determine MAX's best move, we work backward from the leaves toward the root.
 
--   At node A, MIN chooses the smaller of 3 and 5, giving 3.
--   At node B, MIN chooses the smaller of 2 and 9, giving 2.
--   At the root, MAX chooses the larger of 3 and 2, giving 3.
+- At A, MIN selects the smaller value: 3.
+- At B, MIN selects the smaller value: 2.
+- At the root, MAX selects the larger value: 3.
 
-Thus, MAX chooses branch A.
+Therefore, MAX selects branch A.
 
-This simple example introduces the main idea behind Minimax: **MAX
-assumes that MIN will respond intelligently and choose the move that is
-worst for MAX.**
+This introduces the fundamental principle of Minimax: **MAX assumes that MIN will respond intelligently and choose the outcome that is worst for MAX.**
 
 ## 4. The Minimax Algorithm
 
-### 4.1 Why Do We Need Minimax?
+### 4.1 Why Is Minimax Needed?
 
-Suppose an AI has two possible moves. The first move could lead to a
-score of 10 if the opponent makes a poor response, but the opponent can
-force a score of -5. The second move guarantees a score of 2, regardless
-of the opponent's available responses.
+Suppose an AI has two possible moves.
 
-A greedy strategy might choose the first move because it appears to
-offer a score of 10. Minimax instead considers the opponent's best
-response and chooses the second move because it guarantees a better
-outcome.
+The first move could lead to a score of 10 if the opponent responds poorly, but the opponent can force a score of -5. The second move guarantees a score of 2, regardless of the opponent's available responses.
 
-Minimax is a decision-making algorithm that selects a move by assuming
-that:
+A greedy strategy might choose the first move because it appears to offer 10. Minimax instead considers the opponent's best response and chooses the second move because it guarantees a better outcome.
 
--   MAX always chooses the action that maximizes the utility.
--   MIN always chooses the action that minimizes the utility for MAX.
--   Both players make optimal decisions.
--   The rules and available actions are known.
+Minimax is a decision-making algorithm based on the assumption that:
 
-This is a cautious strategy: MAX does not assume that its opponent will
-make mistakes.
+- MAX chooses the action that maximizes utility.
+- MIN chooses the action that minimizes utility for MAX.
+- Both players make optimal decisions.
+- The rules and available actions are known.
 
-### 4.2 How Does Minimax Work?
+### 4.2 How Minimax Works
 
-Minimax works from the bottom of the game tree upward.
+Minimax evaluates a game tree from the leaves upward.
 
-At a terminal node, the utility is already known. At a non-terminal
-node, the algorithm calculates the value from the values of its
-children.
+At a terminal node, the utility is already known. At a non-terminal node, the algorithm calculates the value from the values of its children.
 
-The rules are:
+At a MAX node, it chooses the maximum child value:
 
--   At a MAX node, choose the **maximum** child value.
--   At a MIN node, choose the **minimum** child value.
+```math
+V(s)=\max_{a\in A(s)} V(\operatorname{Result}(s,a))
+```
 
-The value of a node is called its *Minimax value*.
+At a MIN node, it chooses the minimum child value:
 
-For a MAX node:
-
-\[
-V(s)=`\max`{=tex}\_{a`\in `{=tex}A(s)}V(`\operatorname{Result}`{=tex}(s,a))
-\]
-
-For a MIN node:
-
-\[
-V(s)=`\min`{=tex}\_{a`\in `{=tex}A(s)}V(`\operatorname{Result}`{=tex}(s,a))
-\]
+$$
+V(s)=\min_{a\in A(s)} V(\operatorname{Result}(s,a))
+$$
 
 Here:
 
--   \(s\) is the current game state.
--   (A(s)) is the set of legal actions available in state (s).
--   \(a\) is one possible action.
--   (`\operatorname{Result}`{=tex}(s,a)) is the state reached after
-    taking action (a).
--   (V(s)) is the value of the state from MAX's perspective.
+- \(s\) is the current state.
+- \(A(s)\) is the set of legal actions in state \(s\).
+- \(a\) is a possible action.
+- \(\operatorname{Result}(s,a)\) is the state reached after action \(a\).
+- \(V(s)\) is the value of the state from MAX's perspective.
 
-In plain English, the algorithm evaluates the possible next states and
-selects the highest value when it is MAX's turn or the lowest value when
-it is MIN's turn.
+In simple terms, MAX selects the highest available value, while MIN selects the lowest.
 
-### 4.3 A Complete Worked Example
+### 4.3 Worked Example
 
-Consider this game tree:
+Use the numerical tree:
 
-``` text
-                    MAX
-                     3
-                   /   \
-                A         B
-               MIN       MIN
-                3         2
-              /  \      /   \
-             3    5    2     9
+```text
+                  MAX
+                 /   \
+                A     B
+               MIN   MIN
+              /  \   /  \
+             3    5 2    9
 ```
 
 **Step 1: Evaluate node A.**
 
-Node A belongs to MIN. Its available outcomes are 3 and 5.
+A belongs to MIN. Its outcomes are 3 and 5.
 
-MIN chooses the smaller value:
+MIN selects the smaller value:
 
-\[ V(A)=`\min`{=tex}(3,5)=3 \]
+$$
+V(A)=\min(3,5)=3
+$$
 
 **Step 2: Evaluate node B.**
 
-Node B also belongs to MIN. Its available outcomes are 2 and 9.
+B also belongs to MIN. Its outcomes are 2 and 9.
 
-\[ V(B)=`\min`{=tex}(2,9)=2 \]
+$$
+V(B)=\min(2,9)=2
+$$
 
 **Step 3: Evaluate the root.**
 
 The root belongs to MAX. Its children have values 3 and 2.
 
-\[ V(`\text{root}`{=tex})=`\max`{=tex}(3,2)=3 \]
+$$
+V(\text{root})=\max(3,2)=3
+$$
 
-**Final decision:** MAX selects branch A because it guarantees a value
-of 3, whereas branch B allows MIN to force a value of 2.
+**Decision:** MAX chooses branch A because it guarantees a value of 3, while branch B allows MIN to force a value of 2.
 
-Notice that MAX does not select the leaf with the highest value, 9. That
-leaf lies beyond MIN's decision, and MIN would choose 2 instead. The
-algorithm accounts for the opponent's control over its own turns.
+Notice that MAX does not select the leaf with value 9. MIN controls the decision at node B and would select 2 instead.
 
 ### 4.4 Minimax Pseudocode
 
-``` text
+```text
 MINIMAX(state, isMaximizingPlayer):
 
     if state is terminal:
@@ -383,513 +282,187 @@ MINIMAX(state, isMaximizingPlayer):
         return bestValue
 ```
 
-The algorithm calls itself on each successor state. This is called
-*recursion*. Each recursive call explores the next level of the game
-tree until it reaches a terminal state or another defined stopping
-condition.
+The algorithm calls itself on each successor state. This is called **recursion**.
 
-After returning the value, the algorithm compares it with the best value
-found so far and eventually returns the value of the current state.
+Each call explores the next level of the game tree until it reaches a terminal state or a defined stopping condition.
 
-### 4.5 Python Implementation of Minimax
+After the recursive call returns a value, the algorithm compares it with the best value found so far.
 
-We can implement the same numerical game tree using Python.
-
-``` python
-def minimax(tree, is_maximizing):
-    # A leaf is represented by a number.
-    if isinstance(tree, (int, float)):
-        return tree
-
-    if is_maximizing:
-        best_value = float("-inf")
-
-        for child in tree:
-            value = minimax(child, False)
-            best_value = max(best_value, value)
-
-        return best_value
-
-    else:
-        best_value = float("inf")
-
-        for child in tree:
-            value = minimax(child, True)
-            best_value = min(best_value, value)
-
-        return best_value
-
-
-# Root is MAX; its children are MIN nodes.
-game_tree = [
-    [3, 5],   # Branch A: MIN chooses 3
-    [2, 9]    # Branch B: MIN chooses 2
-]
-
-best_value = minimax(game_tree, True)
-
-print("Best Minimax value:", best_value)
-```
-
-Expected output:
-
-``` text
-Best Minimax value: 3
-```
-
-**Understanding the code**
-
-1.  `tree` represents the current part of the game tree. A number
-    represents a leaf; a list represents a non-terminal node and its
-    children.
-2.  `is_maximizing` tells the function whose turn it is.
-3.  If `tree` is a number, the function has reached a leaf and returns
-    its utility.
-4.  At a MAX node, `best_value` begins at negative infinity. Each
-    child's value is calculated, and the largest is retained.
-5.  At a MIN node, `best_value` begins at positive infinity. Each
-    child's value is calculated, and the smallest is retained.
-6.  The recursive call switches the player from MAX to MIN or from MIN
-    to MAX.
-7.  The final result is the value of the root, which is 3.
-
-This implementation calculates the best value, but it does not
-explicitly return which root-level action achieves it. A game-playing
-program can track the best action along with the value to choose the
-actual move.
-
-### 4.6 Time and Space Complexity
-
-Let:
-
--   \(b\) be the average branching factor, or number of legal actions at
-    each node.
--   \(d\) be the maximum search depth.
-
-If Minimax explores a full tree of depth (d), its time complexity is
-approximately:
-
-\[ O(b\^d) \]
-
-The exponential growth is the main difficulty. If each state has 10
-possible moves, for example, exploring 5 levels can involve up to
-(10\^5=100{,}000) leaf positions.
-
-A typical recursive implementation stores the current path and its local
-variables, requiring (O(d)) auxiliary space for depth-first traversal,
-excluding the representation of the tree itself.
-
-This is manageable for small games but becomes expensive for games such
-as Chess. We therefore need ways to reduce the amount of search.
+The Python implementation is provided in the companion lab: `week-05-adversarial-search-lab.md`.
 
 ## 5. Alpha-Beta Pruning
 
 ### 5.1 Why Is Pruning Necessary?
 
-Minimax can make excellent decisions, but it may explore many branches
-that cannot affect the final decision.
+Minimax may explore many branches that cannot affect its final decision.
 
-Imagine that MAX has already found a move that guarantees a value of 3.
-When examining another move, the algorithm discovers that MIN can force
-the value down to 2.
+Suppose MAX has already found a move that guarantees a value of 3. While examining another move, the algorithm discovers that MIN can force the value down to 2.
 
-No matter what other outcomes are hidden beyond that MIN node, MIN can
-choose an outcome of 2 or lower than MAX's current alternative of 3.
-That branch cannot improve MAX's decision.
+The remaining branches beneath that MIN node cannot make the branch better than MAX's existing alternative. Further exploration is unnecessary.
 
-Alpha-Beta Pruning allows the algorithm to stop exploring such branches.
+**Alpha-Beta Pruning is an optimization of Minimax.** It skips branches that cannot affect the final decision while preserving the Minimax value.
 
-**Alpha-Beta Pruning is an optimization of Minimax.** It does not change
-the underlying decision rule. When implemented correctly, it returns the
-same Minimax value and optimal move while potentially examining fewer
-nodes.
+### 5.2 Understanding Alpha and Beta
 
-### 5.2 What Do Alpha and Beta Mean?
+Alpha and beta are bounds maintained during the search.
 
-Alpha and beta are two bounds maintained during the search.
+- **Alpha (\(\alpha\))** is the best lower bound on the value MAX can guarantee among the alternatives examined so far.
+- **Beta (\(\beta\))** is the best upper bound that MIN can enforce for MAX among the alternatives examined so far.
 
--   **Alpha ((`\alpha`{=tex}))** is the best value MAX can guarantee
-    from the alternatives examined so far. It is a lower bound on the
-    value MAX can achieve.
--   **Beta ((`\beta`{=tex}))** is the best upper bound that MIN can
-    enforce for MAX among the alternatives examined so far.
+Initially:
 
-Initially, the bounds are:
+$$ 
+\alpha=-\infty,\qquad \beta=+\infty
+$$
 
-\[
-`\alpha`{=tex}=-`\infty`{=tex},`\qquad `{=tex}`\beta`{=tex}=+`\infty`{=tex}
-\]
+At a MAX node, alpha may increase when a better value is discovered.
 
-As the algorithm explores the tree, these values become more
-restrictive.
-
-At a MAX node, alpha may increase when a better value is found. At a MIN
-node, beta may decrease when a lower value is found.
+At a MIN node, beta may decrease when a lower value is discovered.
 
 ### 5.3 The Pruning Condition
 
-The central rule is:
+The key condition is:
 
-\[ `\boxed{\alpha\geq\beta}`{=tex} \]
+$$
+\boxed{\alpha\geq\beta}
+$$
 
-When alpha becomes greater than or equal to beta, the algorithm can stop
-examining the remaining children of the current node.
+When alpha becomes greater than or equal to beta, the algorithm can stop exploring the remaining children of the current node.
 
 Why?
 
-MAX already has an alternative worth at least alpha. MIN already has an
-alternative that can restrict MAX to at most beta. If alpha is at least
-beta, the remaining exploration cannot produce a result that improves
-the decision for the player whose choice matters at the ancestor node.
+MAX already has an alternative worth at least alpha. MIN has already found a way to restrict MAX to at most beta in the current branch. If alpha is at least beta, the current branch cannot improve the decision at the relevant ancestor.
 
-More precisely, the bounds show that the current branch cannot change
-the root's optimal value. The branch may contain different leaf scores,
-but discovering them is unnecessary for selecting the optimal move.
+The exact values of the unexplored leaves are unnecessary for selecting the optimal move.
 
-Pruning does not mean the unexplored nodes have a value of zero. It
-means their exact values are not needed for the final decision.
+Pruning does not mean that the unexplored nodes have a value of zero. It means their values cannot change the decision being made.
 
-### 5.4 A Step-by-Step Alpha-Beta Example
+### 5.4 Worked Example
 
-Consider the same game tree, with children examined from left to right:
+Examine the same game tree from left to right:
 
-``` text
-                    MAX
-                 value = 3
-                 /       \
-                A         B
-               MIN       MIN
-             value=3   current=2
-              /  \      /   \
-             3    5    2    9 (pruned)
+```text
+                  MAX
+                 /   \
+                A     B
+               MIN   MIN
+              /  \   /  \
+             3    5 2    9
 ```
 
-**Step 1: Start at the root.**
+**Step 1: Explore branch A.**
 
-At the beginning, no alternative has been examined:
+MIN compares 3 and 5 and returns 3.
 
-\[
-`\alpha`{=tex}=-`\infty`{=tex},`\qquad `{=tex}`\beta`{=tex}=+`\infty`{=tex}
-\]
+MAX can now guarantee at least 3, so the root's alpha becomes 3.
 
-**Step 2: Examine branch A.**
+**Step 2: Explore branch B.**
 
-The first leaf has value 3. MIN's current best value at A becomes 3.
-
-The second leaf has value 5. MIN still chooses 3, because it wants the
-smaller value.
-
-The value of A is therefore 3. MAX can now guarantee a value of at least
-3, so the root's alpha becomes 3.
-
-**Step 3: Move to branch B.**
-
-The first child of B has value 2. Since B is a MIN node, its current
-best value is now 2, so beta at B becomes 2.
+The first child of B has value 2. Because B is a MIN node, its current beta becomes 2.
 
 We now have:
 
-\[ `\alpha=3`{=tex},`\qquad `{=tex}`\beta=2`{=tex} \]
+$$ \alpha=3,\qquad\beta=2 $$
 
-Since (`\alpha`{=tex}`\geq`{=tex}`\beta`{=tex}), the pruning condition
-is satisfied.
+Since:
 
-**Step 4: Prune the remaining child.**
+$$
+\alpha\geq\beta
+$$
 
-The unexplored leaf has value 9, but its value is irrelevant to the root
-decision. MIN can already select the outcome worth 2 at B. Thus, B
-cannot offer MAX a value better than the 3 already available through A.
+the pruning condition is satisfied.
 
-The algorithm skips the leaf with value 9.
+**Step 3: Prune the remaining child.**
 
-**Final decision:** MAX still chooses branch A with value 3, just as in
-ordinary Minimax.
+The leaf with value 9 does not need to be evaluated. MIN can already choose the outcome worth 2 at B, so branch B cannot improve MAX's existing alternative worth 3.
 
-### 5.5 Alpha-Beta Pruning Pseudocode
+**Final decision:** MAX still chooses branch A with value 3, exactly as in ordinary Minimax.
 
-``` text
-ALPHA_BETA(state, depth, alpha, beta, isMaximizingPlayer):
-
-    if state is terminal or depth limit reached:
-        return evaluate(state)
-
-    if isMaximizingPlayer:
-        value = negative infinity
-
-        for each legal action:
-            nextState = apply action to state
-
-            childValue = ALPHA_BETA(
-                nextState, depth + 1,
-                alpha, beta, false
-            )
-
-            value = maximum(value, childValue)
-            alpha = maximum(alpha, value)
-
-            if alpha >= beta:
-                break
-
-        return value
-
-    else:
-        value = positive infinity
-
-        for each legal action:
-            nextState = apply action to state
-
-            childValue = ALPHA_BETA(
-                nextState, depth + 1,
-                alpha, beta, true
-            )
-
-            value = minimum(value, childValue)
-            beta = minimum(beta, value)
-
-            if alpha >= beta:
-                break
-
-        return value
-```
-
-This version uses a depth limit as an optional stopping condition. If
-the entire game tree is explored, the search can stop at terminal
-states. In a depth-limited search, the evaluation function must also
-handle unfinished states.
-
-The key additional operations compared with Minimax are updating alpha
-or beta and checking whether the pruning condition has been met.
-
-### 5.6 Python Implementation of Alpha-Beta Pruning
-
-The following implementation uses exactly the same game tree as the
-Minimax example.
-
-``` python
-def alpha_beta(tree, is_maximizing, alpha, beta, stats):
-    # A leaf is represented by a number.
-    if isinstance(tree, (int, float)):
-        stats["leaves"] += 1
-        return tree
-
-    if is_maximizing:
-        best_value = float("-inf")
-
-        for child in tree:
-            value = alpha_beta(
-                child, False, alpha, beta, stats
-            )
-
-            best_value = max(best_value, value)
-            alpha = max(alpha, best_value)
-
-            # MIN already has a bound that makes
-            # further exploration unnecessary.
-            if alpha >= beta:
-                break
-
-        return best_value
-
-    else:
-        best_value = float("inf")
-
-        for child in tree:
-            value = alpha_beta(
-                child, True, alpha, beta, stats
-            )
-
-            best_value = min(best_value, value)
-            beta = min(beta, best_value)
-
-            # MAX already has a better alternative.
-            if alpha >= beta:
-                break
-
-        return best_value
-
-
-game_tree = [
-    [3, 5],
-    [2, 9]
-]
-
-stats = {"leaves": 0}
-
-best_value = alpha_beta(
-    game_tree,
-    True,
-    float("-inf"),
-    float("inf"),
-    stats
-)
-
-print("Best Alpha-Beta value:", best_value)
-print("Leaf nodes evaluated:", stats["leaves"])
-```
-
-Expected output:
-
-``` text
-Best Alpha-Beta value: 3
-Leaf nodes evaluated: 3
-```
-
-Ordinary Minimax evaluates all four leaves in this example. Alpha-Beta
-Pruning evaluates only three, skipping the leaf with value 9.
-
-The `stats` dictionary counts the leaf nodes actually evaluated. It is
-used to demonstrate the effect of pruning, not to calculate the decision
-itself.
-
-### 5.7 Understanding the Implementation
-
-1.  The function receives the current subtree, the player whose turn it
-    is, and the alpha and beta bounds.
-2.  If the current node is a numerical leaf, it returns the utility and
-    increments the leaf counter.
-3.  At a MAX node, the function updates `best_value` with the maximum
-    child value and raises alpha if a better value is found.
-4.  At a MIN node, the function updates `best_value` with the minimum
-    child value and lowers beta if a better value for MIN is found.
-5.  After each child, the function checks whether `alpha >= beta`.
-6.  If the condition holds, `break` stops the loop and skips the
-    remaining children of that node.
-7.  The function returns the best value found within the bounds, which
-    is sufficient for the parent to make its decision.
-
-Alpha and beta are passed down the recursive calls. Each node uses the
-information already obtained from its ancestors and previously explored
-siblings to determine whether additional work is necessary.
+The companion lab demonstrates this process in Python and counts the evaluated leaves.
 
 ## 6. Comparing Minimax and Alpha-Beta Pruning
 
-Both algorithms use the same decision-making principle. Their main
-difference is how much of the game tree they need to examine.
+| Feature | Minimax | Alpha-Beta Pruning |
+|---|---|---|
+| Purpose | Find the best move under the game assumptions | Find the same decision more efficiently |
+| Explores branches | All branches within the search limit | Skips branches that cannot affect the decision |
+| Alpha and beta bounds | Not used | Used |
+| Pruning condition | Not applicable | \(\alpha\geq\beta\) |
+| Worst-case time | \(O(b^d)\) | \(O(b^d)\) |
+| Best-case time with good move ordering | \(O(b^d)\) | Approximately \(O(b^{d/2})\) |
 
-  ---------------------------------------------------------------------------------------------
-  Feature                 Minimax                 Alpha-Beta Pruning
-  ----------------------- ----------------------- ---------------------------------------------
-  Main purpose            Find the optimal move   Find the same optimal move more efficiently
-                          under the game          
-                          assumptions             
-
-  Explores branches       All branches within the Skips branches that cannot affect the
-                          search limit            decision
-
-  Maintains alpha and     No                      Yes
-  beta                                            
-
-  Pruning condition       Not applicable          (`\alpha `{=tex}`\geq `{=tex}`\beta`{=tex})
-
-  Worst-case time         (O(b\^d))               (O(b\^d))
-
-  Best-case time with     (O(b\^d))               Approximately (O(b\^{d/2}))
-  good move ordering                              
-
-  Decision quality        Optimal for the         Same as Minimax for the searched tree
-                          searched tree           
-  ---------------------------------------------------------------------------------------------
-
-Here, (b) is the branching factor and (d) is the search depth.
+Here, \(b\) is the branching factor and \(d\) is the search depth.
 
 ### 6.1 Why Does Move Ordering Matter?
 
-Alpha-Beta Pruning becomes more effective when promising moves are
-examined early.
+Alpha-Beta Pruning is more effective when promising moves are examined first.
 
-Suppose the AI can examine five possible moves. If the first move
-reveals a very strong result for MAX, alpha increases. This may allow
-the algorithm to prune many branches of later MIN nodes.
+If a strong move is found early, alpha can increase quickly. This can allow the algorithm to prune more branches later.
 
-If poor moves are examined first, alpha may remain low for longer, and
-fewer branches may be pruned.
+If poor moves are examined first, fewer branches may be pruned.
 
-For a balanced tree with good move ordering, Alpha-Beta Pruning can
-sometimes search approximately twice as deeply as Minimax with a similar
-number of node evaluations. This is an illustrative rule of thumb, not a
-guarantee.
+With ideal move ordering in a balanced tree, Alpha-Beta Pruning can sometimes search approximately twice as deeply with a similar number of node evaluations. This is a useful rule of thumb, not a guarantee.
 
-**Important:** Alpha-Beta Pruning does not make a bad move good, nor
-does it improve the utility function. It reduces unnecessary search
-while preserving the result of Minimax.
+**Important:** Alpha-Beta Pruning does not improve the utility function or change the underlying decision rule. It reduces unnecessary exploration while preserving the Minimax result.
 
-## 7. From Small Game Trees to Real Game Engines
+## 7. From Search Algorithms to Game Engines
 
-### 7.1 Why Is Chess Difficult for Exhaustive Search?
+### 7.1 Why Is Chess Difficult to Search Exhaustively?
 
-Chess has a large number of legal positions and possible move sequences.
-Even though the rules are deterministic and the board is visible to both
-players, exploring every possible game to its conclusion is impractical.
+Chess has many legal positions and possible move sequences. Although the game is deterministic and has perfect information, exploring every possible game to its conclusion is impractical.
 
-Consider a simplified example in which each position has an average of
-30 legal moves.
+Suppose a simplified game tree has an average branching factor of 30.
 
-    Search depth   Approximate number of positions
-  -------------- ---------------------------------
-               1                                30
-               2                               900
-               3                            27,000
-               4                           810,000
-               5                        24,300,000
+| Search depth | Approximate number of positions |
+|---:|---:|
+| 1 | 30 |
+| 2 | 900 |
+| 3 | 27,000 |
+| 4 | 810,000 |
+| 5 | 24,300,000 |
 
-These figures use the simplified assumption of a constant branching
-factor of 30. Actual game trees vary by position, and these figures do
-not account for transpositions, where different move sequences reach the
-same position.
+These figures assume a constant branching factor of 30. Actual game trees vary, and different move sequences can sometimes reach the same position.
 
-The important observation is that the search tree grows exponentially
-with depth. Even a modest increase in search depth can dramatically
-increase the computational cost.
+The important observation is that the search tree grows exponentially with depth.
 
 ### 7.2 Depth-Limited Search
 
-Instead of exploring the entire game tree, a practical game engine often
-searches only to a fixed depth.
+A practical game engine often searches only to a fixed depth instead of exploring the entire game.
 
-For example, a depth-limited search may explore four plies, where a
-*ply* means one player's move. Four plies represent two moves by each
-player when both alternate normally.
+For example, a search depth of four plies means that four individual player moves are explored.
 
-But what happens when the search reaches its depth limit and the game
-has not ended?
+What happens if the game has not ended when the depth limit is reached?
 
-The algorithm needs an evaluation function.
+The engine needs an evaluation function to estimate how favorable the unfinished position is.
 
 ### 7.3 Heuristic Evaluation Functions
 
-A heuristic evaluation function estimates how favorable a non-terminal
-game position is.
+A heuristic evaluation function estimates the value of a non-terminal game position.
 
-For a Chess engine, a simplified evaluation function might consider:
+A Chess engine might consider:
 
--   Material advantage, such as having more valuable pieces.
--   King safety.
--   Control of the center.
--   Mobility, meaning the number and quality of available moves.
--   Pawn structure and other positional factors.
+- Material advantage, such as having more valuable pieces.
+- King safety.
+- Control of the center.
+- Mobility, or the number and quality of available moves.
+- Pawn structure and other positional factors.
 
-Consider a hypothetical position:
+Suppose a simplified evaluation function assigns:
 
--   Position A has an estimated value of +4.
--   Position B has an estimated value of -2.
+- Position A: +4
+- Position B: -2
 
-If positive values favor MAX, position A is estimated to be better for
-MAX than position B.
+If positive values favor MAX, Position A is estimated to be better for MAX.
 
-These are illustrative evaluation scores, not guaranteed game outcomes.
-A heuristic is an estimate, so it may be inaccurate. Minimax can choose
-the best move according to the evaluation function while still making a
-poor real-world decision if that function misjudges a position.
+These are illustrative scores, not guaranteed outcomes. A heuristic can be inaccurate, so an AI can select the best move according to its evaluation function and still make a poor real-world decision.
 
-### 7.4 How Does a Game Engine Use These Components?
+### 7.4 A Simplified Game-Engine Workflow
 
-A simplified game-playing system follows this process:
-
-``` text
+```text
 Current game state
         |
         v
-Generate possible legal moves
+Generate legal moves
         |
         v
 Search the game tree
@@ -905,61 +478,47 @@ Select the best move
 Update the game state
 ```
 
-This is a conceptual workflow. In an actual engine, evaluation is
-integrated into the search, and legal-move generation, pruning, and move
-selection may interact at every level.
+A game engine requires more than a search algorithm. It also needs:
 
-A game engine is more than a search algorithm. It also needs to
-represent the game state, generate legal moves, enforce the rules,
-evaluate positions, and manage the overall process of playing a game.
+- A representation of the game state.
+- Legal-move generation.
+- Rule enforcement and terminal-state detection.
+- A utility or evaluation function.
+- Search and move-selection procedures.
+
+In a practical engine, these components work together.
 
 ### 7.5 Other Practical Techniques
 
-Three techniques are particularly useful for understanding practical
-game engines.
-
 **Iterative deepening**
 
-The engine searches to depth 1, then depth 2, then depth 3, and
-continues until it reaches its time or resource limit. This allows it to
-maintain a usable result if the search must stop.
+The engine searches to depth 1, then depth 2, then depth 3, continuing until it reaches its time or resource limit. It can retain the best move found at the last completed depth.
 
 **Move ordering**
 
-The engine tries promising moves first to increase the effectiveness of
-Alpha-Beta Pruning. Previous search results, captures, and other
-heuristics can help determine the order.
+The engine examines promising moves first to improve the effectiveness of Alpha-Beta Pruning.
 
 **Transposition tables**
 
-Different sequences of moves can sometimes lead to the same position. A
-transposition table stores previously calculated results so that the
-engine can reuse them instead of repeating the same work.
+Different move sequences can lead to the same position. A transposition table stores previously calculated results so they can be reused.
 
-Modern game-playing systems may combine these techniques with opening
-knowledge, endgame databases, advanced evaluation functions, and machine
-learning. The precise combination depends on the game and the engine's
-design.
+Modern game-playing systems may combine these techniques with opening knowledge, endgame databases, advanced evaluation functions, and machine learning.
 
-## 8. Worked Application: Tic-Tac-Toe
+## 8. A Tic-Tac-Toe Example
 
-Let us connect the numerical game tree to a real game.
+Assume the AI plays O and the opponent plays X.
 
-Assume the AI plays O, and the human plays X. O must select a legal
-empty cell. Its objective is to win if possible, prevent X from winning,
-or draw if a win cannot be guaranteed.
+Define terminal utilities from O's perspective:
 
-For Tic-Tac-Toe, we can define terminal utilities from O's perspective:
-
--   O wins: +1
--   Draw: 0
--   X wins: -1
+- O wins: +1
+- Draw: 0
+- X wins: -1
 
 O is MAX, and X is MIN.
 
-Consider this valid position, with O to move:
+Consider this position:
 
-``` text
+```text
 X | X | .
 ---------
 O | O | .
@@ -967,12 +526,11 @@ O | O | .
 . | . | .
 ```
 
-X has made two moves and O has made two moves, so it is O's turn.
+Each player has made two moves, so it is O's turn.
 
-O has several legal moves. Consider the empty cell in the third column
-of the second row. If O places its mark there, the board becomes:
+O can complete the second row:
 
-``` text
+```text
 X | X | .
 ---------
 O | O | O
@@ -980,167 +538,86 @@ O | O | O
 . | . | .
 ```
 
-O wins immediately, so the utility is +1.
+This move wins immediately, producing utility +1.
 
-Minimax examines the possible moves and their consequences. Because O
-can win immediately, the move completing the row is optimal. The search
-does not need to assume that X will make a mistake; it considers the
-available responses to each candidate move.
+Minimax compares legal moves and their possible consequences. Since O can win immediately, the winning move is optimal.
 
-Alpha-Beta Pruning can help avoid unnecessary exploration when other
-branches cannot improve this decision.
+This example illustrates why a game-playing program must generate legal moves, detect terminal states, and evaluate outcomes correctly. Minimax and Alpha-Beta Pruning rely on these supporting components.
 
-This example also shows why a game-playing program must check the actual
-game rules, detect terminal states, and generate only legal moves. The
-search algorithm alone cannot perform those tasks unless they are
-provided by the surrounding program.
+The companion lab contains the programming work associated with these ideas.
 
 ## 9. Common Misconceptions
 
-**Misconception 1: Minimax always selects the highest leaf value.**
+**Misconception 1: Minimax always chooses the highest leaf value.**
 
-Not necessarily. It selects the best move after accounting for the
-opponent's decisions. MIN may prevent MAX from reaching a high-valued
-leaf.
+No. It selects the best move after accounting for the opponent's decisions. MIN may prevent MAX from reaching a high-valued leaf.
 
 **Misconception 2: Alpha-Beta Pruning changes the final decision.**
 
-Correctly implemented Alpha-Beta Pruning preserves the Minimax value for
-the same search tree and evaluation rules. It skips branches that cannot
-change the result.
+Correctly implemented pruning preserves the Minimax value for the same search tree and evaluation rules.
 
-**Misconception 3: Alpha is the value of MAX's current node, and beta is
-the value of MIN's current node.**
+**Misconception 3: Alpha is the value of MAX's current node and beta is the value of MIN's current node.**
 
-Alpha and beta are bounds carried through the search. They are updated
-as the algorithm discovers better alternatives; they are not simply the
-final values of the current nodes.
+Alpha and beta are bounds carried through the search. They are not simply the final values of the current nodes.
 
-**Misconception 4: Every leaf node represents a completed game.**
+**Misconception 4: Every leaf represents a completed game.**
 
-A leaf may instead be a position where a depth limit has been reached.
-Such a position needs a heuristic evaluation.
+A leaf may be an unfinished position where the depth limit has been reached. Such a position needs heuristic evaluation.
 
-**Misconception 5: Alpha-Beta Pruning always reduces the search time by
-the same amount.**
+**Misconception 5: Alpha-Beta Pruning always provides the same speed improvement.**
 
-Its efficiency depends on the structure of the tree and the order in
-which moves are explored. In the worst case, its time complexity remains
-(O(b\^d)).
+Its efficiency depends on the tree and the order in which moves are explored. Its worst-case time complexity remains \(O(b^d)\).
 
-**Misconception 6: Minimax and Alpha-Beta Pruning are complete game
-engines.**
+**Misconception 6: Minimax and Alpha-Beta Pruning are complete game engines.**
 
-They are search algorithms. A functioning game-playing program also
-needs state representation, legal-move generation, terminal-state
-detection, and an appropriate utility or evaluation function.
+They are search algorithms. A complete game-playing program also needs state representation, legal-move generation, terminal-state detection, and an appropriate evaluation function.
 
 ## 10. Essential Terminology
 
-  -----------------------------------------------------------------------
-  Term                                Meaning
-  ----------------------------------- -----------------------------------
-  Adversarial search                  Search in an environment where
-                                      another agent works toward an
-                                      opposing objective
+| Term | Meaning |
+|---|---|
+| Adversarial search | Search where another agent has an opposing objective |
+| Game tree | A tree of possible game states and moves |
+| MAX | Player seeking to maximize utility |
+| MIN | Player seeking to minimize MAX's utility |
+| Utility function | Numerical representation of an outcome's desirability |
+| Minimax value | Value calculated assuming optimal play by both players |
+| Alpha | Lower bound on the value MAX can guarantee |
+| Beta | Upper bound on the value MIN can enforce |
+| Pruning | Skipping exploration that cannot affect the decision |
+| Branching factor | Average number of available actions at a state |
+| Search depth | Number of levels explored from the root |
+| Heuristic evaluation | Estimate of a non-terminal state's value |
+| Ply | One player's move |
+| Move ordering | Arranging candidate moves to improve search efficiency |
 
-  Game tree                           A tree of possible game states and
-                                      moves
+## 11. Review Questions
 
-  MAX                                 The player seeking to maximize
-                                      utility
-
-  MIN                                 The player seeking to minimize
-                                      MAX's utility
-
-  Utility function                    A numerical representation of the
-                                      desirability of a terminal outcome
-
-  Minimax value                       The value calculated by assuming
-                                      both players choose optimally
-
-  Alpha                               The best lower bound on the value
-                                      MAX can guarantee so far
-
-  Beta                                The best upper bound on the value
-                                      MIN can enforce so far
-
-  Pruning                             Skipping exploration that cannot
-                                      affect the final decision
-
-  Branching factor                    The average number of available
-                                      actions at a state
-
-  Search depth                        The number of levels explored from
-                                      the root
-
-  Heuristic evaluation                An estimate of the value of a
-                                      non-terminal state
-
-  Ply                                 One player's move
-
-  Move ordering                       Arranging candidate moves to
-                                      improve search efficiency
-  -----------------------------------------------------------------------
-
-## 11. Review Questions and Answers
-
-1.  **What is adversarial search?**\
-    A search technique for decision-making when another agent actively
-    works toward an opposing objective.
-
-2.  **Why is Tic-Tac-Toe suitable for learning Minimax?**\
-    It has simple rules, deterministic outcomes, perfect information,
-    and a relatively small game tree.
-
-3.  **What does MAX do at a node?**\
-    It selects the maximum value among the child nodes.
-
-4.  **What does MIN do at a node?**\
-    It selects the minimum value from MAX's perspective.
-
-5.  **What are the initial values of alpha and beta?**\
-    Alpha starts at negative infinity and beta starts at positive
-    infinity.
-
-6.  **When can Alpha-Beta Pruning occur?**\
-    When alpha is greater than or equal to beta.
-
-7.  **Does pruning change the Minimax value?**\
-    No. Correct pruning preserves the value and optimal decision for the
-    same search tree.
-
-8.  **Why do practical game engines use heuristic evaluation?**\
-    To estimate unfinished positions when exploring the complete game
-    tree is too expensive.
-
-9.  **What is the worst-case time complexity of Minimax?**\
-    (O(b\^d)), where (b) is the branching factor and (d) is the search
-    depth.
-
-10. **Why does move ordering matter?**\
-    Examining promising moves first can allow Alpha-Beta Pruning to
-    eliminate more branches.
+1. What is adversarial search, and how does it differ from ordinary pathfinding?
+2. What is the difference between a deterministic game and a stochastic game?
+3. What makes Chess a game of perfect information?
+4. What do MAX and MIN represent in a game tree?
+5. Why does MIN select the smallest child value?
+6. What is the Minimax value of the root in the numerical example?
+7. What do alpha and beta represent?
+8. When can Alpha-Beta Pruning occur?
+9. Does pruning change the Minimax result?
+10. Why do practical game engines use depth limits and heuristic evaluation?
+11. Why does move ordering affect pruning efficiency?
+12. What additional components are needed to build a complete game engine?
 
 ## 12. Conclusion
 
-Adversarial search enables an AI system to make decisions by considering
-not only its own actions but also the possible responses of an opponent.
+Adversarial search enables an AI system to make decisions by considering both its own actions and the possible responses of an opponent.
 
-Minimax provides the fundamental decision-making strategy: MAX chooses
-the highest value, while MIN chooses the lowest value from MAX's
-perspective. The algorithm works backward through the game tree to
-identify the best available move under the assumption that both players
-act optimally.
+Minimax provides the fundamental decision-making strategy: MAX chooses the highest value, while MIN chooses the lowest value from MAX's perspective. The algorithm works backward through the game tree, assuming both players act optimally.
 
-Alpha-Beta Pruning improves the efficiency of Minimax by skipping
-branches that cannot change the final decision. It uses alpha and beta
-bounds to identify when additional exploration is unnecessary.
+Alpha-Beta Pruning improves the efficiency of Minimax by skipping branches that cannot change the final decision.
 
-In practical game engines, these algorithms are combined with move
-generation, terminal-state detection, depth limits, heuristic
-evaluation, and other optimizations.
+Practical game engines combine these algorithms with legal-move generation, terminal-state detection, depth limits, heuristic evaluation, and other optimizations.
 
-The central lesson is simple: **a good game-playing AI does not merely
-ask, "What is my best move?" It asks, "What is my best move, assuming my
-opponent will respond intelligently?"**
+The central lesson is:
+
+**A good game-playing AI does not merely ask, "What is my best move?" It asks, "What is my best move, assuming my opponent will respond intelligently?"**
+
+
