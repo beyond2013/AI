@@ -241,9 +241,9 @@ e. Explain the purpose of the Minimax algorithm in two-player games. (1)
 
 ## Preparation Guidelines
 
-Students should practise the following before appearing in the practical examination:
+Students should practice the following before appearing in the practical examination:
 
-| Week | Practical Topic | What to Practise |
+| Week | Practical Topic | What to practice |
 |---|---|---|
 | 1 | Rule-Based Expert System | Variables, input, print, if-elif-else |
 | 2 | BFS and DFS | Lists, dictionaries, loops, queues and stacks |
@@ -254,10 +254,10 @@ Students should practise the following before appearing in the practical examina
 
 ### Important Advice
 
-- Practise executing Python programs and correcting simple errors.
+- practice executing Python programs and correcting simple errors.
 - Understand what each statement in a program does.
 - Be comfortable with variables, lists, dictionaries, loops, functions, and conditional statements.
-- Practise changing input values and observing how the output changes.
+- practice changing input values and observing how the output changes.
 - Do not memorise programs without understanding their purpose.
 
 **Remember:** The practical examination will assess your ability to understand, execute, modify, and interpret simple Python programs related to the AI topics covered in the laboratory sessions.
